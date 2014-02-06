@@ -1,0 +1,312 @@
+#! /usr/bin/env bash
+
+WORKING_DIR=`pwd`
+AGGR_LIB=$WORKING_DIR/aggr-lib
+CONF_LIB=$WORKING_DIR/conf-lib
+VARS_DIR=$WORKING_DIR/vars
+
+### Re-arrange the Template file Name to Build Up......
+#
+FILE_NAME=$0
+TEMPLATE_FILE_NAME=`echo $FILE_NAME | awk -F'[@]' '{print $2}'`
+TEMPLATE_FILE=$CONF_LIB/$TEMPLATE_FILE_NAME
+if [[ ! -f $TEMPLATE_FILE ]]
+then
+ echo "[ error ] $TEMPLATE_FILE template file does not exist..... "
+ exit
+fi
+PLATFORM_TYPE=`echo $TEMPLATE_FILE_NAME | awk -F'[.]' '{print $1}'`
+ZONE_NAME=`echo $TEMPLATE_FILE_NAME | awk -F'[.]' '{print $2}'`
+POD_TYPE=`echo $TEMPLATE_FILE_NAME | awk -F'[.]' '{print $3}'`
+CONFIG_TYPE=`echo $TEMPLATE_FILE_NAME | awk -F'[.]' '{print $4}'`
+SWITCH_PROD=`echo $TEMPLATE_FILE_NAME | awk -F'[.]' '{print $5}'`
+
+### Confirm the Zone Environment File existance and Sourcing the files......
+#
+ZONEFILE_SRV_AGGR=$AGGR_LIB/$PLATFORM_TYPE.$ZONE_NAME.$POD_TYPE.service-aggrs
+if [[ ! -f $ZONEFILE_SRV_AGGR ]]
+then
+ echo "[ error ] $ZONEFILE_SRV_AGGR zone file does not exist..... "
+ exit
+fi
+source $ZONEFILE_SRV_AGGR
+ZONEFILE_STR_AGGR=$AGGR_LIB/$PLATFORM_TYPE.$ZONE_NAME.$POD_TYPE.storage-aggrs
+if [[ ! -f $ZONEFILE_STR_AGGR ]]
+then
+ echo "[ error ] $ZONEFILE_STR_AGGR zone file does not exist..... "
+ exit
+fi
+source $ZONEFILE_STR_AGGR
+
+### Define the Input Variable to Bulde up the TOR configuration......
+#
+if [[ $# != 17 ]]
+then
+ echo "[ error ] $0 command is required like below"
+ echo "$0"
+ echo "     [ TOR(RACK)_NAME ]       : this is tor switch name, such as CATR-K05R-SE-08R05"
+ echo "     [  ENABLE PASS ]         : the password for enable"
+ echo "     [  ADMIN PASS  ]         : the password for 'admin' account"
+ echo "     [  KTCSE PASS  ]         : the password for 'ktcseadmin' account"
+ echo "     [  OPMAN PASS  ]         : the password for 'opadmin' account"
+ echo "     [  SERVICE TOR1 UPLINK ] : service uplink serial ip network for tor1"
+ echo "     [  SERVICE TOR2 UPLINK ] : service uplink serial ip network for tor2"
+ echo "     [  STORAGE TOR1 UPLINK ] : storage uplink serial ip network for tor1"
+ echo "     [  STORAGE TOR2 UPLINK ] : storage uplink serial ip network for tor2"
+ echo "     [  SERVICE TOR1 LO ]     : service loopback ip address for tor1"
+ echo "     [  SERVICE TOR2 LO ]     : service loopback ip address for tor2"
+ echo "     [  STORAGE TOR1 LO ]     : storage loopback ip address for tor1"
+ echo "     [  STORAGE TOR2 LO ]     : storage loopback ip address for tor2"
+ echo "     [  MGMT DEVICE NAME ]    : management switch name"
+ echo "     [  MGMT NETWORK     ]    : management netowrk"
+ echo "     [  SERVICE NETWORK ]     : service network"
+ echo "     [  STORAGE NETWORK ]     : storage network"
+ exit
+fi
+
+RACK_NAME=$1
+CHANGE_ENABLE_PASS=$2
+CHANGE_ADMIN_PASS=$3
+CHANGE_KTCSEADMIN_PASS=$4
+CHANGE_OPADMIN_PASS=$5
+TOR1_SERVICE_UPLINK_NETWORK=$6
+TOR2_SERVICE_UPLINK_NETWORK=$7
+TOR1_STORAGE_UPLINK_NETWORK=$8
+TOR2_STORAGE_UPLINK_NETWORK=$9
+TOR1_SERVICE_LO_NETWORK=${10}
+TOR2_SERVICE_LO_NETWORK=${11}
+TOR1_STORAGE_LO_NETWORK=${12}
+TOR2_STORAGE_LO_NETWORK=${13}
+MGMT_SWITCH_NAME=${14}
+CHANGE_MGMT_NETWORK=${15}
+CHANGE_SERVICE_NETWORK=${16}
+CHANGE_STORAGE_NETWORK=${17}
+
+### Rack Name Confirmation by basic rule.....[DataCenter/Layer]-[ZONE/Room ID]-[Service Type]-[Location].........
+#
+if [[ `echo $RACK_NAME | awk -F'[-]' '{print NF}'` != 4 ]]
+then
+ echo "$RACK_NAME is not following the rule, [DataCenter/Layer]-[ZONE/Room ID]-[Service Type]-[Location]"
+ echo "such as CATR-K05R-SE-08R05, re-define the switch tor (Rack) Name"
+ exit
+fi
+
+### Create the Configuration Directory......
+### This directory name is created by the management device name
+### ZTP process, management device name is used to identify the configuration
+#
+TOR_RACK_NAME=$VARS_DIR/$MGMT_SWITCH_NAME
+if [[ -d $TOR_RACK_NAME ]]
+then
+ echo "[ error ] $TOR_RACK_NAME has been already existed......"
+ exit
+fi
+mkdir -p $TOR_RACK_NAME
+chmod 777 $TOR_RACK_NAME
+DEF_CONF_FILE=$TOR_RACK_NAME/$RACK_NAME-DEFAULT
+cp $TEMPLATE_FILE $DEF_CONF_FILE
+
+### Step 1. UPdate the PASSWORD Part configuration......
+#
+sed -i 's/CHANGE_ENABLE_PASS/'$CHANGE_ENABLE_PASS'/' $DEF_CONF_FILE
+sed -i 's/CHANGE_ADMIN_PASS/'$CHANGE_ADMIN_PASS'/' $DEF_CONF_FILE
+sed -i 's/CHANGE_KTCSEADMIN_PASS/'$CHANGE_KTCSEADMIN_PASS'/' $DEF_CONF_FILE
+TOR1_CONF=$TOR_RACK_NAME/$RACK_NAME-01
+sed -i 's/CHANGE_OPADMIN_PASS/'$CHANGE_OPADMIN_PASS'/' $DEF_CONF_FILE
+
+### Step 2. Create and initialize the Each Configuration (UP/DOWN) and Update the Host(Switch) Name......
+#
+TOR1_CONF=$TOR_RACK_NAME/$RACK_NAME-01
+TOR2_CONF=$TOR_RACK_NAME/$RACK_NAME-02
+cp $DEF_CONF_FILE $TOR1_CONF
+cp $DEF_CONF_FILE $TOR2_CONF
+rm -rf $DEF_CONF_FILE
+sed -i 's/CHANGE_HOSTNAME/'$RACK_NAME-01'/' $TOR1_CONF
+sed -i 's/CHANGE_HOSTNAME/'$RACK_NAME-02'/' $TOR2_CONF
+
+### Step 3. SERVICE TOR Uplink Port Information UPdate......
+#
+sed -i 's/CHANGE_SERVICE_UPLINK_PORTNAME/'$SERVICE_AGGR1_NAME'/' $TOR1_CONF
+TEMP_MASK=`ipcalc $TOR1_SERVICE_UPLINK_NETWORK | grep -i 'Netmask' | awk '{print $4}'`
+if [[ $TEMP_MASK != 30 ]]
+then
+ echo "$TOR1_SERVICE_UPLINK_NETWORK has wrong subnet [30bit]....."
+ rm -rf $TOR_RACK_NAME
+ exit
+fi
+TEMP_IP=`ipcalc $TOR1_SERVICE_UPLINK_NETWORK | grep -i 'HostMax' | awk '{print $2}'`"\/"$TEMP_MASK
+ROUTER_TOR1_SERVICE_UPLINK_NETWORK=`ipcalc $TOR1_SERVICE_UPLINK_NETWORK | grep -i 'Network' | awk '{print $2}' | awk -F'[/]' '{print $1}'`"\/"$TEMP_MASK
+sed -i 's/CHANGE_SERVICE_UPLINK_NETWORK/'$TEMP_IP'/' $TOR1_CONF
+
+sed -i 's/CHANGE_SERVICE_UPLINK_PORTNAME/'$SERVICE_AGGR2_NAME'/' $TOR2_CONF
+TEMP_MASK=`ipcalc $TOR2_SERVICE_UPLINK_NETWORK | grep -i 'Netmask' | awk '{print $4}'`
+if [[ $TEMP_MASK != 30 ]]
+then
+ echo "$TOR2_SERVICE_UPLINK_NETWORK has wrong subnet [30bit]....."
+ rm -rf $TOR_RACK_NAME
+ exit
+fi
+TEMP_IP=`ipcalc $TOR2_SERVICE_UPLINK_NETWORK | grep -i 'HostMax' | awk '{print $2}'`"\/"$TEMP_MASK
+ROUTER_TOR2_SERVICE_UPLINK_NETWORK=`ipcalc $TOR2_SERVICE_UPLINK_NETWORK | grep -i 'Network' | awk '{print $2}' | awk -F'[/]' '{print $1}'`"\/"$TEMP_MASK
+sed -i 's/CHANGE_SERVICE_UPLINK_NETWORK/'$TEMP_IP'/' $TOR2_CONF
+
+#### Step 4. STORAGE TOR Uplink Port Information UPdate......
+#
+sed -i 's/CHANGE_STORAGE_UPLINK_PORTNAME/'$STORAGE_AGGR1_NAME'/' $TOR1_CONF
+TEMP_MASK=`ipcalc $TOR1_STORAGE_UPLINK_NETWORK | grep -i 'Netmask' | awk '{print $4}'`
+if [[ $TEMP_MASK != 30 ]]
+then
+ echo "$TOR1_STORAGE_UPLINK_NETWORK has wrong subnet [30bit]....."
+ rm -rf $TOR_RACK_NAME
+ exit
+fi
+TEMP_IP=`ipcalc $TOR1_STORAGE_UPLINK_NETWORK | grep -i 'HostMax' | awk '{print $2}'`"\/"$TEMP_MASK
+ROUTER_TOR1_STORAGE_UPLINK_NETWORK=`ipcalc $TOR1_STORAGE_UPLINK_NETWORK | grep -i 'Network' | awk '{print $2}' | awk -F'[/]' '{print $1}'`"\/"$TEMP_MASK
+sed -i 's/CHANGE_STORAGE_UPLINK_NETWORK/'$TEMP_IP'/' $TOR1_CONF
+
+sed -i 's/CHANGE_STORAGE_UPLINK_PORTNAME/'$STORAGE_AGGR2_NAME'/' $TOR2_CONF
+TEMP_MASK=`ipcalc $TOR2_STORAGE_UPLINK_NETWORK | grep -i 'Netmask' | awk '{print $4}'`
+if [[ $TEMP_MASK != 30 ]]
+then
+ echo "$TOR1_STORAGE_UPLINK_NETWORK has wrong subnet [30bit]....."
+ rm -rf $TOR_RACK_NAME
+ exit
+fi
+TEMP_IP=`ipcalc $TOR2_STORAGE_UPLINK_NETWORK | grep -i 'HostMax' | awk '{print $2}'`"\/"$TEMP_MASK
+ROUTER_TOR2_STORAGE_UPLINK_NETWORK=`ipcalc $TOR2_STORAGE_UPLINK_NETWORK | grep -i 'Network' | awk '{print $2}' | awk -F'[/]' '{print $1}'`"\/"$TEMP_MASK
+sed -i 's/CHANGE_STORAGE_UPLINK_NETWORK/'$TEMP_IP'/' $TOR2_CONF
+
+
+#### Step 5. Loopback IP Address UPdate (Service and Storage Part).......
+#
+TEMP_MASK=`ipcalc $TOR1_SERVICE_LO_NETWORK | grep -i 'Netmask' | awk '{print $4}'`
+if [[ $TEMP_MASK != 32 ]]
+then
+ echo "$TOR1_SERVICE_LO_NETWORK has wrong subnet [32bit]....."
+ rm -rf $TOR_RACK_NAME
+ exit
+fi
+TEMP_IP=`ipcalc $TOR1_SERVICE_LO_NETWORK | grep -i 'Address' | awk '{print $2}'`"\/"$TEMP_MASK
+ROUTER_TOR1_SERVICE_LO_NETWORK_ID=`ipcalc $TOR1_SERVICE_LO_NETWORK | grep -i 'Hostroute' | awk '{print $2}'`
+ROUTER_TOR1_SERVICE_LO_NETWORK=$ROUTER_TOR1_SERVICE_LO_NETWORK_ID"\/"$TEMP_MASK
+sed -i 's/CHANGE_SERVICE_LO_NETWORK/'$TEMP_IP'/' $TOR1_CONF
+
+TEMP_MASK=`ipcalc $TOR2_SERVICE_LO_NETWORK | grep -i 'Netmask' | awk '{print $4}'`
+if [[ $TEMP_MASK != 32 ]]
+then
+ echo "$TOR2_SERVICE_LO_NETWORK has wrong subnet [32bit]....."
+ rm -rf $TOR_RACK_NAME
+ exit
+fi
+TEMP_IP=`ipcalc $TOR2_SERVICE_LO_NETWORK | grep -i 'Address' | awk '{print $2}'`"\/"$TEMP_MASK
+ROUTER_TOR2_SERVICE_LO_NETWORK_ID=`ipcalc $TOR2_SERVICE_LO_NETWORK | grep -i 'Hostroute' | awk '{print $2}'`
+ROUTER_TOR2_SERVICE_LO_NETWORK=$ROUTER_TOR2_SERVICE_LO_NETWORK_ID"\/"$TEMP_MASK
+sed -i 's/CHANGE_SERVICE_LO_NETWORK/'$TEMP_IP'/' $TOR2_CONF
+
+TEMP_MASK=`ipcalc $TOR1_STORAGE_LO_NETWORK | grep -i 'Netmask' | awk '{print $4}'`
+if [[ $TEMP_MASK != 32 ]]
+then
+ echo "$TOR1_STORAGE_LO_NETWORK has wrong subnet [32bit]....."
+ rm -rf $TOR_RACK_NAME
+ exit
+fi
+TEMP_IP=`ipcalc $TOR1_STORAGE_LO_NETWORK | grep -i 'Address' | awk '{print $2}'`"\/"$TEMP_MASK
+ROUTER_TOR1_STORAGE_LO_NETWORK_ID=`ipcalc $TOR1_STORAGE_LO_NETWORK | grep -i 'Hostroute' | awk '{print $2}'`
+ROUTER_TOR1_STORAGE_LO_NETWORK=$ROUTER_TOR1_STORAGE_LO_NETWORK_ID"\/"$TEMP_MASK
+sed -i 's/CHANGE_STORAGE_LO_NETWORK/'$TEMP_IP'/' $TOR1_CONF
+
+TEMP_MASK=`ipcalc $TOR2_STORAGE_LO_NETWORK | grep -i 'Netmask' | awk '{print $4}'`
+if [[ $TEMP_MASK != 32 ]]
+then
+ echo "$TOR2_STORAGE_LO_NETWORK has wrong subnet [32bit]....."
+ rm -rf $TOR_RACK_NAME
+ exit
+fi
+TEMP_IP=`ipcalc $TOR2_STORAGE_LO_NETWORK | grep -i 'Address' | awk '{print $2}'`"\/"$TEMP_MASK
+ROUTER_TOR2_STORAGE_LO_NETWORK_ID=`ipcalc $TOR2_STORAGE_LO_NETWORK | grep -i 'Hostroute' | awk '{print $2}'`
+ROUTER_TOR2_STORAGE_LO_NETWORK=$ROUTER_TOR2_STORAGE_LO_NETWORK_ID"\/"$TEMP_MASK
+sed -i 's/CHANGE_STORAGE_LO_NETWORK/'$TEMP_IP'/' $TOR2_CONF
+
+
+#### Step 6. Manage Interface and Gateway UPdate.........
+#
+TEMP_NETWORK=`ipcalc $CHANGE_MGMT_NETWORK | grep -i 'Network' | awk '{print $2}' | awk -F'[/]' '{print $1}'`
+CLASS_A=`echo $TEMP_NETWORK | awk -F'[.]' '{print $1}'`
+CLASS_B=`echo $TEMP_NETWORK | awk -F'[.]' '{print $2}'`
+CLASS_C=`echo $TEMP_NETWORK | awk -F'[.]' '{print $3}'`
+TOR1_MGMT_NETWORK=$CLASS_A.$CLASS_B.$CLASS_C.251"\/"24
+TOR2_MGMT_NETWORK=$CLASS_A.$CLASS_B.$CLASS_C.252"\/"24
+MGMT_GATEWAY=$CLASS_A.$CLASS_B.$CLASS_C.1
+sed -i 's/CHANGE_MGMT_NETWORK/'$TOR1_MGMT_NETWORK'/' $TOR1_CONF
+sed -i 's/CHANGE_MGMT_GATEWAY/'$MGMT_GATEWAY'/' $TOR1_CONF
+sed -i 's/CHANGE_MGMT_NETWORK/'$TOR2_MGMT_NETWORK'/' $TOR2_CONF
+sed -i 's/CHANGE_MGMT_GATEWAY/'$MGMT_GATEWAY'/' $TOR2_CONF
+
+#### Step 7. SERVICE and STORAGE Network Configuration UPDATE.. (this will be used for RIP, Service and Storage).........
+#
+TEMP_GW=`ipcalc $CHANGE_SERVICE_NETWORK | grep -i 'HostMax' | awk '{print $2}'`
+TEMP_MASK=`ipcalc $CHANGE_SERVICE_NETWORK | grep -i 'Netmask' | awk '{print $4}'`
+ROUTER_SERVICE_NETWORK=`ipcalc $CHANGE_SERVICE_NETWORK | grep -i 'Network' | awk '{print $2}' | awk -F'[/]' '{print $1}'`"\/"$TEMP_MASK
+CLASS_1=`echo $TEMP_GW | awk -F'[.]' '{print $1}'`
+CLASS_2=`echo $TEMP_GW | awk -F'[.]' '{print $2}'`
+CLASS_3=`echo $TEMP_GW | awk -F'[.]' '{print $3}'`
+CLASS_4=`echo $TEMP_GW | awk -F'[.]' '{print $4}'`
+TOR1_SERVICE_IP=`expr $CLASS_4 - 1`
+TOR2_SERVICE_IP=`expr $CLASS_4 - 2`
+TEMP_TOR1_NETWORK=$CLASS_1.$CLASS_2.$CLASS_3.$TOR1_SERVICE_IP"\/"$TEMP_MASK
+TEMP_TOR2_NETWORK=$CLASS_1.$CLASS_2.$CLASS_3.$TOR2_SERVICE_IP"\/"$TEMP_MASK
+sed -i 's/CHANGE_SERVICE_NETWORK/'$TEMP_TOR1_NETWORK'/' $TOR1_CONF
+sed -i 's/CHANGE_SERVICE_GATEWAY/'$TEMP_GW'/' $TOR1_CONF
+sed -i 's/CHANGE_SERVICE_NETWORK/'$TEMP_TOR2_NETWORK'/' $TOR2_CONF
+sed -i 's/CHANGE_SERVICE_GATEWAY/'$TEMP_GW'/' $TOR2_CONF
+
+TEMP_GW=`ipcalc $CHANGE_STORAGE_NETWORK | grep -i 'HostMax' | awk '{print $2}'`
+TEMP_MASK=`ipcalc $CHANGE_STORAGE_NETWORK | grep -i 'Netmask' | awk '{print $4}'`
+ROUTER_STORAGE_NETWORK=`ipcalc $CHANGE_STORAGE_NETWORK | grep -i 'Network' | awk '{print $2}' | awk -F'[/]' '{print $1}'`"\/"$TEMP_MASK
+CLASS_1=`echo $TEMP_GW | awk -F'[.]' '{print $1}'`
+CLASS_2=`echo $TEMP_GW | awk -F'[.]' '{print $2}'`
+CLASS_3=`echo $TEMP_GW | awk -F'[.]' '{print $3}'`
+CLASS_4=`echo $TEMP_GW | awk -F'[.]' '{print $4}'`
+TOR1_SERVICE_IP=`expr $CLASS_4 - 1`
+TOR2_SERVICE_IP=`expr $CLASS_4 - 2`
+TEMP_TOR1_NETWORK=$CLASS_1.$CLASS_2.$CLASS_3.$TOR1_SERVICE_IP"\/"$TEMP_MASK
+TEMP_TOR2_NETWORK=$CLASS_1.$CLASS_2.$CLASS_3.$TOR2_SERVICE_IP"\/"$TEMP_MASK
+sed -i 's/CHANGE_STORAGE_NETWORK/'$TEMP_TOR1_NETWORK'/' $TOR1_CONF
+sed -i 's/CHANGE_STORAGE_GATEWAY/'$TEMP_GW'/' $TOR1_CONF
+sed -i 's/CHANGE_STORAGE_NETWORK/'$TEMP_TOR2_NETWORK'/' $TOR2_CONF
+sed -i 's/CHANGE_STORAGE_GATEWAY/'$TEMP_GW'/' $TOR2_CONF
+
+#### Step 8. RIP Routing Network Configuration Update................
+#
+sed -i 's/CHANGE_RIP_NETWORK/'$ROUTER_SERVICE_NETWORK'/' $TOR1_CONF
+sed -i 's/CHANGE_RIP_NETWORK/'$ROUTER_SERVICE_NETWORK'/' $TOR2_CONF
+
+#### Step 9. OSPF Routing Network Configuration Update
+#
+sed -i 's/CHANGE_SERVICE_OSPF_ROUTER_ID/'$ROUTER_TOR1_SERVICE_LO_NETWORK_ID'/' $TOR1_CONF
+sed -i 's/CHANGE_SERVICE_OSPF_UPLINK/'$ROUTER_TOR1_SERVICE_UPLINK_NETWORK'/' $TOR1_CONF
+sed -i 's/CHANGE_SERVICE_OSPF_LO/'$ROUTER_TOR1_SERVICE_LO_NETWORK'/' $TOR1_CONF
+sed -i 's/CHANGE_SERVICE_OSPF_CONNECT/'$ROUTER_SERVICE_NETWORK'/' $TOR1_CONF
+
+sed -i 's/CHANGE_SERVICE_OSPF_ROUTER_ID/'$ROUTER_TOR2_SERVICE_LO_NETWORK_ID'/' $TOR2_CONF
+sed -i 's/CHANGE_SERVICE_OSPF_UPLINK/'$ROUTER_TOR2_SERVICE_UPLINK_NETWORK'/' $TOR2_CONF
+sed -i 's/CHANGE_SERVICE_OSPF_LO/'$ROUTER_TOR2_SERVICE_LO_NETWORK'/' $TOR2_CONF
+sed -i 's/CHANGE_SERVICE_OSPF_CONNECT/'$ROUTER_SERVICE_NETWORK'/' $TOR2_CONF
+
+sed -i 's/CHANGE_STORAGE_OSPF_ROUTER_ID/'$ROUTER_TOR1_STORAGE_LO_NETWORK_ID'/' $TOR1_CONF
+sed -i 's/CHANGE_STORAGE_OSPF_UPLINK/'$ROUTER_TOR1_STORAGE_UPLINK_NETWORK'/' $TOR1_CONF
+sed -i 's/CHANGE_STORAGE_OSPF_LO/'$ROUTER_TOR1_STORAGE_LO_NETWORK'/' $TOR1_CONF
+sed -i 's/CHANGE_STORAGE_OSPF_CONNECT/'$ROUTER_STORAGE_NETWORK'/' $TOR1_CONF
+
+sed -i 's/CHANGE_STORAGE_OSPF_ROUTER_ID/'$ROUTER_TOR2_STORAGE_LO_NETWORK_ID'/' $TOR2_CONF
+sed -i 's/CHANGE_STORAGE_OSPF_UPLINK/'$ROUTER_TOR2_STORAGE_UPLINK_NETWORK'/' $TOR2_CONF
+sed -i 's/CHANGE_STORAGE_OSPF_LO/'$ROUTER_TOR2_STORAGE_LO_NETWORK'/' $TOR2_CONF
+sed -i 's/CHANGE_STORAGE_OSPF_CONNECT/'$ROUTER_STORAGE_NETWORK'/' $TOR2_CONF
+
+### Step 10. BGP Routing Network Configuration Update
+#
+sed -i 's/CHANGE_SERVICE_BGP_ROUTER_ID/'$ROUTER_TOR1_SERVICE_LO_NETWORK_ID'/' $TOR1_CONF
+sed -i 's/CHANGE_SERVICE_BGP_UPLINK_LO/'$SERVICE_AGGR1_LO'/' $TOR1_CONF
+sed -i 's/CHANGE_SERVICE_BGP_ROUTER_ID/'$ROUTER_TOR2_SERVICE_LO_NETWORK_ID'/' $TOR2_CONF
+sed -i 's/CHANGE_SERVICE_BGP_UPLINK_LO/'$SERVICE_AGGR2_LO'/' $TOR2_CONF
+

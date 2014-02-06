@@ -1,0 +1,326 @@
+!
+terminal length 25
+!
+logging host 10.0.8.45
+!
+hostname CHANGE_HOSTNAME
+!
+ntp server 10.0.1.251
+ntp server 10.0.1.252
+!
+snmp-server community ktcloudnw! ro
+snmp-server host 10.0.8.45 version 2c ktcloudnw!
+snmp-server enable traps
+snmp-server vrf Management
+!
+spanning-tree mode rapid-pvst
+no spanning-tree bpduguard rate-limit default
+!
+enable secret 0 CHANGE_ENABLE_PASS
+no aaa root
+!
+username admin role network-admin secret 0 CHANGE_ADMIN_PASS
+username ktcseadmin secret 0 CHANGE_KTCSEADMIN_PASS
+username opadmin secret 0 CHANGE_OPADMIN_PASS
+!
+clock timezone Asia/Seoul
+!
+vlan 100
+   name Service
+!
+vlan 200
+   name Storage
+!
+vrf definition Management
+   rd 100:200
+!
+vrf definition storage
+   rd 100:100
+!
+interface Port-Channel1000
+   description Interlink
+   switchport trunk allowed vlan 100,200
+   switchport mode trunk
+!
+interface Ethernet1
+   description Cnode01_Service
+   switchport access vlan 100
+!
+interface Ethernet2
+   description Cnode02_Service
+   switchport access vlan 100
+!
+interface Ethernet3
+   description Cnode03_Service
+   switchport access vlan 100
+!
+interface Ethernet4
+   description Cnode04_Service
+   switchport access vlan 100
+!
+interface Ethernet5
+   description Cnode05_Service
+   switchport access vlan 100
+!
+interface Ethernet6
+   description Cnode06_Service
+   switchport access vlan 100
+!
+interface Ethernet7
+   description Cnode07_Service
+   switchport access vlan 100
+!
+interface Ethernet8
+   description Cnode08_Service
+   switchport access vlan 100
+!
+interface Ethernet9
+   description Cnode09_Service
+   switchport access vlan 100
+!
+interface Ethernet10
+   description Cnode10_Service
+   switchport access vlan 100
+!
+interface Ethernet11
+   description Cnode11_Service
+   switchport access vlan 100
+!
+interface Ethernet12
+   description Cnode12_Service
+   switchport access vlan 100
+!
+interface Ethernet13
+   description Cnode13_Service
+   switchport access vlan 100
+!
+interface Ethernet14
+   description Cnode14_Service
+   switchport access vlan 100
+!
+interface Ethernet15
+   description Cnode15_Service
+   switchport access vlan 100
+!
+interface Ethernet16
+   description Cnode16_Service
+   switchport access vlan 100
+!
+interface Ethernet17
+   description Cnode17_Service
+   switchport access vlan 100
+!
+interface Ethernet18
+   shutdown
+!
+interface Ethernet19
+   shutdown
+!
+interface Ethernet20
+   shutdown
+!
+interface Ethernet21
+   description Cnode01_Storage
+   switchport access vlan 200
+!
+interface Ethernet22
+   description Cnode02_Storage
+   switchport access vlan 200
+!
+interface Ethernet23
+   description Cnode03_Storage
+   switchport access vlan 200
+!
+interface Ethernet24
+   description Cnode04_Storage
+   switchport access vlan 200
+!
+interface Ethernet25
+   description Cnode05_Storage
+   switchport access vlan 200
+!
+interface Ethernet26
+   description Cnode06_Storage
+   switchport access vlan 200
+!
+interface Ethernet27
+   description Cnode07_Storage
+   switchport access vlan 200
+!
+interface Ethernet28
+   description Cnode08_Storage
+   switchport access vlan 200
+!
+interface Ethernet29
+   description Cnode09_Storage
+   switchport access vlan 200
+!
+interface Ethernet30
+   description Cnode10_Storage
+   switchport access vlan 200
+!
+interface Ethernet31
+   description Cnode11_Storage
+   switchport access vlan 200
+!
+interface Ethernet32
+   description Cnode12_Storage
+   switchport access vlan 200
+!
+interface Ethernet33
+   description Cnode13_Storage
+   switchport access vlan 200
+!
+interface Ethernet34
+   description Cnode14_Storage
+   switchport access vlan 200
+!
+interface Ethernet35
+   description Cnode15_Storage
+   switchport access vlan 200
+!
+interface Ethernet36
+   description Cnode16_Storage
+   switchport access vlan 200
+!
+interface Ethernet37
+   description Cnode17_Storage
+   switchport access vlan 200
+!
+interface Ethernet38
+   shutdown
+!
+interface Ethernet39
+   shutdown
+!
+interface Ethernet40
+   shutdown
+!
+interface Ethernet41
+   shutdown
+!
+interface Ethernet42
+   shutdown
+!
+interface Ethernet43
+   description Interlink
+   channel-group 1000 mode active
+!
+interface Ethernet44
+   description Interlink
+   channel-group 1000 mode active
+!
+interface Ethernet45
+   description CHANGE_SERVICE_UPLINK_PORTNAME
+   no switchport
+   ip address CHANGE_SERVICE_UPLINK_NETWORK
+   ip ospf network point-to-point
+!
+interface Ethernet46
+   shutdown
+!
+interface Ethernet47
+   description CHANGE_STORAGE_UPLINK_PORTNAME
+   no switchport
+   vrf forwarding storage
+   ip address CHANGE_STORAGE_UPLINK_NETWORK
+   ip ospf network point-to-point
+!
+interface Ethernet48
+   shutdown
+!
+interface Ethernet49
+   shutdown
+!
+interface Ethernet50
+   shutdown
+!
+interface Ethernet51
+   shutdown
+!
+interface Ethernet52
+   shutdown
+!
+interface Loopback0
+   description service-lo0
+   ip address CHANGE_SERVICE_LO_NETWORK
+!
+interface Loopback1
+   description storage-lo0
+   vrf forwarding storage
+   ip address CHANGE_STORAGE_LO_NETWORK
+!
+interface Management1
+   vrf forwarding Management
+   ip address CHANGE_MGMT_NETWORK
+!
+interface Vlan100
+   description service
+   ip address CHANGE_SERVICE_NETWORK
+   ip virtual-router address CHANGE_SERVICE_GATEWAY
+!
+interface Vlan200
+   description storage
+   vrf forwarding storage
+   ip address CHANGE_STORAGE_NETWORK
+   ip virtual-router address CHANGE_STORAGE_GATEWAY
+!
+ip virtual-router mac-address 00:1c:73:00:00:99
+!
+ip route vrf Management 0.0.0.0/0 CHANGE_MGMT_GATEWAY
+!
+ip routing
+ip routing vrf Management
+ip routing vrf storage
+!
+router bgp 65000
+   router-id CHANGE_SERVICE_BGP_ROUTER_ID
+   bgp log-neighbor-changes
+   neighbor CHANGE_SERVICE_BGP_UPLINK_LO remote-as 65000
+   neighbor CHANGE_SERVICE_BGP_UPLINK_LO update-source Loopback0
+   neighbor CHANGE_SERVICE_BGP_UPLINK_LO maximum-routes 12000 
+   redistribute rip
+!
+router ospf 2001
+   router-id CHANGE_SERVICE_OSPF_ROUTER_ID
+   network CHANGE_SERVICE_OSPF_UPLINK area 0.0.0.0
+   network CHANGE_SERVICE_OSPF_LO area 0.0.0.0
+   network CHANGE_SERVICE_OSPF_CONNECT area 0.0.0.0
+   max-lsa 12000
+   maximum-paths 32
+!
+router ospf 2002 vrf storage
+   router-id CHANGE_STORAGE_OSPF_ROUTER_ID
+   network CHANGE_STORAGE_OSPF_UPLINK area 0.0.0.0
+   network CHANGE_STORAGE_OSPF_LO area 0.0.0.0
+   network CHANGE_STORAGE_OSPF_CONNECT area 0.0.0.0
+   max-lsa 12000
+   maximum-paths 32
+!
+router rip
+   network CHANGE_RIP_NETWORK
+   no shutdown
+!
+banner login
+======================================================================
+                        !!! Access Warning !!! 
+======================================================================
+1. You connected an Unauthorised NETWORK device.
+   If you were not enrolled, you should log out from this device.
+
+2. We are record your histoy regardless of your agreement.
+
+3. After you connect this device, if you try to habit illegal 
+   and then you receive punishment for the crime.
+----------------------------------------------------------------------
+EOF
+!
+management console
+   idle-timeout 30
+!
+management telnet
+   no shutdown
+   idle-timeout 5
+!
+!
+end

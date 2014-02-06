@@ -1,0 +1,7 @@
+<form method='post' action="http://30.0.0.3/switch_netboot/register-zone-aggrs.py">
+
+ <input type='hidden' name='key' value='remove'/>
+ <input type='hidden' name='filename' value=%(filename)s />
+ <input type='submit' value='Remove'/>
+
+</form>

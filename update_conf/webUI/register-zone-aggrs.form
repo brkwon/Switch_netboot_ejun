@@ -1,0 +1,40 @@
+<form method='post' action="http://30.0.0.3/switch_netboot/register-zone-aggrs.py">
+
+ <input type='hidden' name='key' value='submitted'/>
+
+ Platform Name : 
+ <select name="platform_name">
+  <option value="openstack">openstack</option>
+ </select><br><br>
+
+ Zone Name :
+ <select name="zone_name">
+  <option value="ktis">ktis</option>
+ </select><br><br>
+
+ Service Type :
+ <select name="service_type">
+  <option value="prod-1">production 1</option>
+ </select><br><br>
+
+ AGG Switch Type : 
+ <select name="agg_type">
+  <option value="service">service</option>
+  <option value="storage">storage</option>
+ </select><br><br>
+
+ <h3> AGG Switch Information </h3>
+ <table border="1">
+  <tr>
+   <td> AGG #1 Switch Name : <input type='text' name='agg1_name' size=30/> </td>
+   <td> AGG #1 Switch Loopback IP address : <input type='text' name='agg1_lo' size=30/> </td>
+  </tr>
+  <tr>
+   <td> AGG #2 Switch Name : <input type='text' name='agg2_name' size=30/> </td>
+   <td> AGG #2 Switch Loopback IP address : <input type='text' name='agg2_lo' size=30/> </td>
+  </tr>
+ </table><br>
+
+ <input type='submit' value='Register and Show'/>
+
+</form>
