@@ -127,7 +127,7 @@ TOR2_STORAGE_LO_NETWORK=$Return_Subnet_Compare
 ZTP_Config_DIR=$VARS_DIR/$MGMT_SWITCH_NAME
 if [[ -d $ZTP_Config_DIR ]]
 then
- echo "[ error ] the configurations connected on $$MGMT_SWITCH_NAME are existed........."
+ echo "[ error ] the configurations connected on $MGMT_SWITCH_NAME are existed........."
  exit
 fi
 mkdir -p $ZTP_Config_DIR
