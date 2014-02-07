@@ -5,6 +5,14 @@ AGGR_LIB="../aggr-lib"
 CONF_LIB="../conf-lib"
 VARS_DIR="../vars"
 
+### Create the Garbage file to save information temporary
+TEMPMEM="/tmp/value_memory"
+if [[ ! -f $TEMPMEM ]]
+then
+ touch $TEMPMEM
+ chmod 777 $TEMPMEM
+fi
+
 ### Re-arrange the Template file Name to Build Up......
 FILE_NAME=$0
 TEMPLATE_FILE_NAME=`echo $FILE_NAME | awk -F'[@]' '{print $2}'`
@@ -93,7 +101,7 @@ Subnet_Compare(){
    IN_Net=`echo $IN_Net | awk -F'[/]' '{print $1}'`
   fi
  fi
- Return_Subnet_Compare=$IN_Net"\/"$IN_Mask
+ Return_Subnet_Compare=$IN_Net"/"$IN_Mask
 }
 
 
@@ -154,10 +162,10 @@ sed -i 's/CHANGE_HOSTNAME/'$SWITCHES_NAME-02'/' $TOR2_CONF
 
 ### Define function for step 4 and 5 ........... 
 Get_SerialIP(){
- IPCAL_Result=`ipcalc $1`
- TEMP_MASK=`echo $IPCAL_Result | grep -i 'Netmask' | awk '{print $4}'`
- TEMP_IP=`echo $IPCAL_Result | grep -i 'HostMax' | awk '{print $2}'`"\/"$TEMP_MASK
- Return_UPLINK_Network=`echo $IPCAL_Result | grep -i 'Network' | awk '{print $2}' | awk -F'[/]' '{print $1}'`"\/"$TEMP_MASK
+ ipcalc $1 > $TEMPMEM
+ TEMP_MASK=`cat $TEMPMEM | grep -i 'Netmask' | awk '{print $4}'`
+ TEMP_IP=`cat $TEMPMEM | grep -i 'HostMax' | awk '{print $2}'`"\/"$TEMP_MASK
+ Return_UPLINK_Network=`cat $TEMPMEM | grep -i 'Network' | awk '{print $2}' | awk -F'[/]' '{print $1}'`"\/"$TEMP_MASK
 }
 
 ### Step 4. update compute TOR Uplink Port for service network ........
@@ -190,9 +198,9 @@ sed -i 's/CHANGE_STORAGE_UPLINK_NETWORK/'$TEMP_IP'/' $TOR2_CONF
 
 ### Define function fot step 6
 Get_LoopbackIP(){
- IPCAL_Result=`ipcalc $1`
- TEMP_MASK=`echo $IPCAL_Result | grep -i 'Netmask' | awk '{print $4}'`
- TEMP_IP=`echo $IPCAL_Result | grep -i 'Hostroute' | awk '{print $2}'`
+ ipcalc $1 > $TEMPMEM
+ TEMP_MASK=`cat $TEMPMEM | grep -i 'Netmask' | awk '{print $4}'`
+ TEMP_IP=`cat $TEMPMEM | grep -i 'Hostroute' | awk '{print $2}'`
  TEMP_LO_Network=$TEMP_IP"\/"$TEMP_MASK
 }
 
@@ -222,9 +230,9 @@ sed -i 's/CHANGE_STORAGE_LO_NETWORK/'$TEMP_LO_Network'/' $TOR2_CONF
 
 ### Define the function for step 7 and 8.....................
 Get_GW_Info(){
- IPCAL_Result=`ipcalc $1`
- TEMP_MASK=`echo $IPCAL_Result | grep -i 'Netmask' | awk '{print $4}'`
- TEMP_NETWORK=`echo $IPCAL_Result | grep -i 'HostMax' | awk '{print $2}'`
+ ipcalc $1 > $TEMPMEM
+ TEMP_MASK=`cat $TEMPMEM | grep -i 'Netmask' | awk '{print $4}'`
+ TEMP_NETWORK=`cat $TEMPMEM | grep -i 'HostMax' | awk '{print $2}'`
  CLASS_A=`echo $TEMP_NETWORK | awk -F'[.]' '{print $1}'`
  CLASS_B=`echo $TEMP_NETWORK | awk -F'[.]' '{print $2}'`
  CLASS_C=`echo $TEMP_NETWORK | awk -F'[.]' '{print $3}'`
@@ -233,8 +241,8 @@ Get_GW_Info(){
  END_IP_2=`expr $CLASS_D - $3`
  Return_TOR1_IP_NETWORK=$CLASS_A.$CLASS_B.$CLASS_C.$END_IP_1"\/"$TEMP_MASK
  Return_TOR2_IP_NETWORK=$CLASS_A.$CLASS_B.$CLASS_C.$END_IP_2"\/"$TEMP_MASK
- Return_GW_IP=`echo $IPCAL_Result | grep -i 'HostMin' | awk '{print $2}'`
- Return_Network=`echo $IPCAL_Result | grep -i 'Network' | awk '{print $2}' | awk -F'[/]' '{print $1}'`"\/"$TEMP_MASK
+ Return_GW_IP=`cat $TEMPMEM | grep -i 'HostMin' | awk '{print $2}'`
+ Return_Network=`cat $TEMPMEM | grep -i 'Network' | awk '{print $2}' | awk -F'[/]' '{print $1}'`"\/"$TEMP_MASK
 }
 
 
@@ -249,17 +257,17 @@ sed -i 's/CHANGE_MGMT_GATEWAY/'$Return_GW_IP'/' $TOR2_CONF
 Get_GW_Info $CHANGE_SERVICE_NETWORK 2 1
 ROUTER_SERVICE_NETWORK=$Return_Network
 sed -i 's/CHANGE_SERVICE_NETWORK/'$Return_TOR1_IP_NETWORK'/' $TOR1_CONF
-sed -i 's/CHANGE_SERVICE_GATEWAY/'$Return_GW_IP'/' $TOR1_CONF
+sed -i 's/CHANGE_SERVICE_GATEWAY/'$TEMP_NETWORK'/' $TOR1_CONF
 sed -i 's/CHANGE_SERVICE_NETWORK/'$Return_TOR2_IP_NETWORK'/' $TOR2_CONF
-sed -i 's/CHANGE_SERVICE_GATEWAY/'$Return_GW_IP'/' $TOR2_CONF
+sed -i 's/CHANGE_SERVICE_GATEWAY/'$TEMP_NETWORK'/' $TOR2_CONF
 
 #### step 8-2. storage network configuration update..............
 Get_GW_Info $CHANGE_STORAGE_NETWORK 2 1
 ROUTER_STORAGE_NETWORK=$Return_Network
 sed -i 's/CHANGE_STORAGE_NETWORK/'$Return_TOR1_IP_NETWORK'/' $TOR1_CONF
-sed -i 's/CHANGE_STORAGE_GATEWAY/'$Return_GW_IP'/' $TOR1_CONF
+sed -i 's/CHANGE_STORAGE_GATEWAY/'$TEMP_NETWORK'/' $TOR1_CONF
 sed -i 's/CHANGE_STORAGE_NETWORK/'$Return_TOR2_IP_NETWORK'/' $TOR2_CONF
-sed -i 's/CHANGE_STORAGE_GATEWAY/'$Return_GW_IP'/' $TOR2_CONF
+sed -i 's/CHANGE_STORAGE_GATEWAY/'$TEMP_NETWORK'/' $TOR2_CONF
 
 #### Step 9. RIP Routing Network Configuration Update................
 #
