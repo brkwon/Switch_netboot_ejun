@@ -234,7 +234,7 @@ Get_GW_Info(){
  Return_TOR1_IP_NETWORK=$CLASS_A.$CLASS_B.$CLASS_C.$END_IP_1"\/"$TEMP_MASK
  Return_TOR2_IP_NETWORK=$CLASS_A.$CLASS_B.$CLASS_C.$END_IP_2"\/"$TEMP_MASK
  Return_GW_IP=`echo $IPCAL_Result | grep -i 'HostMin' | awk '{print $2}'`
- Return_Network=`echo $IPCAL_Result | grep -i 'Network' | awk '{print $2}' | awk -F'[/]' '{print $1}'"\/"$TEMP_MASK`
+ Return_Network=`echo $IPCAL_Result | grep -i 'Network' | awk '{print $2}' | awk -F'[/]' '{print $1}'`"\/"$TEMP_MASK
 }
 
 
