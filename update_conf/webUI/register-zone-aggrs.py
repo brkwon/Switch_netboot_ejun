@@ -48,7 +48,7 @@ class Register_zone_aggrs:
    else:
     if self.variables_empty_status(agg1_name,agg1_lo,agg2_name,agg2_lo):
      run_command = "./register-zone-aggrs.sh "+platform_name+" "+zone_name+" "+service_name+" "+add_type+" "+agg1_name+" "+agg1_lo+" "+agg2_name+" "+agg2_lo
-     run_result = manage.exec_bash(run_command)
+     run_result = manage.exec_bash("../",run_command)
      self.insert_contents['form_name']="register process is "+run_result.read()+" ! <br><br>"
 
     #### if self.variables_empty_status(agg1_name,agg1_lo,agg2_name,agg2_lo): empty case
@@ -62,7 +62,7 @@ class Register_zone_aggrs:
   elif self.form.getvalue('key','') == 'remove':
    filename = self.form.getvalue('filename','')
    run_command = "rm -rf ./aggr-lib/"+filename
-   run_result = manage.exec_bash(run_command)
+   run_result = manage.exec_bash("../",run_command)
    form_content =  open("./register-zone-aggrs.form").read()
    self.insert_contents['form_name']=form_content
 

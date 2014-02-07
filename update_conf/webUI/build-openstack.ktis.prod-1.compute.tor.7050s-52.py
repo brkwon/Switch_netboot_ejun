@@ -14,7 +14,7 @@ class Register_zone_aggrs:
   self.base_html = open("./base.html").read()
   self.insert_contents={}
   self.insert_contents['page_name']=" Create the Switch Configuration "
-  form_content =  open("./build_tor_config.form").read()
+  form_content =  open("./build-openstack.ktis.prod-1.compute.tor.7050s-52.form").read()
   self.insert_contents['form_name']=form_content
 
 
