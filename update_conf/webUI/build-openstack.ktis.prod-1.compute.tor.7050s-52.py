@@ -46,7 +46,7 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
     config_directory="../vars/"+mgmt_device_name
     if os.path.exists(config_directory):
      ### create table to show the configuration
-     display_config_table="<table><tr>"
+     display_config_table="<h2>"+mgmt_device_name+" is already used ! </h2><br><table><tr>"
      for filename in os.listdir(config_directory):
       display_config_table = display_config_table + "<td><font size=3>"+filename+"</font></td>"
      display_config_table = display_config_table + "</tr><tr>"
@@ -64,20 +64,19 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
      remove_file_name = {}
      remove_file_name['filename'] = config_directory
      remove_cnf_form= remove_form % remove_file_name
-     form_content = remove_cnf_form+self.link_line+"<br><br>"+display_config_table+"<br>"+remove_cnf_form
+     form_content = remove_cnf_form+self.link_line+"<br><br>"+display_config_table+"<br>"+remove_cnf_form+self.link_line
     ### if os.path.exists(config_directory):
     else:
      arguments=switch_name+" "+enable_pass+" "+admin_pass+" "+ktcseadmin_pass+" "+opadmin_pass+" "+service_net_uplink_t1r1+" "+service_net_uplink_t2r2+" "+storage_net_uplink_t1r1+" "+storage_net_uplink_t2r2+" "+switch1_service_lo+" "+switch2_service_lo+" "+switch1_storage_lo+" "+switch2_storage_lo+" "+mgmt_device_name+" "+mgmt_network+" "+service_host_network+" "+storage_host_network
      run_command="./builder\@openstack.ktis.prod-1.compute.tor.7050s-52 "+arguments
      run_result = manage.exec_bash("../builder",run_command)
      form_content="create configuration status :"+run_result.read()+" ! <br><br>"
+     form_content = form_content+self.link_line
 
    ### if self.variables_empty_status: not enough input values..................
    else:
     form_content="the informations are not enough to create the configuration ! <br><br>"
-
-   ### link add to back to the main 
-   form_content = form_content+self.link_line
+    form_content = form_content+self.link_line
   
   ### self.form.getvalue('key','') == 'remove': part
   elif self.form.getvalue('key','') == 'remove':
@@ -86,12 +85,11 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
    run_result = manage.exec_bash("./",run_command)
    form_content =  open("./build-openstack.ktis.prod-1.compute.tor.7050s-52.form").read()
 
-  ### self.form.getvalue('key','') == 'submitted': part
+  ### self.form.getvalue('key','') == 'anything': part
   else:
    form_content =  open("./build-openstack.ktis.prod-1.compute.tor.7050s-52.form").read()
-
+  ### __init__ end
   self.insert_contents['form_name']=form_content
-
 
  def variables_empty_status(self, *args):
   status=True
@@ -109,5 +107,3 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
 if __name__ == "__main__":
  obj = Build_openstack_ktis_prod_1_compute_tor_7050s_52()
  obj.display_html()
- 
-  
