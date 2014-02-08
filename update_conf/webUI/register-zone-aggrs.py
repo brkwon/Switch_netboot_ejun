@@ -17,14 +17,14 @@ class Register_zone_aggrs:
 
   if self.form.getvalue('key','') == 'submitted':
    # requested variables for register........
-   platform_name = self.form.getvalue('platform_name','')
-   zone_name = self.form.getvalue('zone_name','')
-   service_name = self.form.getvalue('service_type','')
-   add_type = self.form.getvalue('agg_type','')
-   agg1_name = self.form.getvalue('agg1_name','')
-   agg1_lo = self.form.getvalue('agg1_lo','')
-   agg2_name = self.form.getvalue('agg2_name','')
-   agg2_lo = self.form.getvalue('agg2_lo','')
+   platform_name = self.form.getvalue('platform_name','').strip()
+   zone_name = self.form.getvalue('zone_name','').strip()
+   service_name = self.form.getvalue('service_type','').strip()
+   add_type = self.form.getvalue('agg_type','').strip()
+   agg1_name = self.form.getvalue('agg1_name','').strip()
+   agg1_lo = self.form.getvalue('agg1_lo','').strip()
+   agg2_name = self.form.getvalue('agg2_name','').strip()
+   agg2_lo = self.form.getvalue('agg2_lo','').strip()
    # register file and property..........
    zone_agg_name = platform_name+"."+zone_name+"."+service_name+"."+add_type+"-aggrs"
    zone_agg_path = "../aggr-lib/"+zone_agg_name

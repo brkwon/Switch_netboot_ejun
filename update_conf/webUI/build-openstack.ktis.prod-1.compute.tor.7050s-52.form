@@ -52,7 +52,7 @@
   <tr>           
    <td align='center' width='140'> <font size='3'> Service network : </font size> </td>
    <td align='center' width='140'> <font size='2'> Switch 1 - Uplink 1 : </font size> </td>
-   <td align='center' width='180'> <input type='text' name='Service_net_uplink_t1r1' size=20/> </td>
+   <td align='center' width='180'> <input type='text' name='service_net_uplink_t1r1' size=20/> </td>
    <td align='center' width='140'> <font size='2'> Switch 2 - Uplink 2 : </font size> </td>
    <td align='center' width='180'> <input type='text' name='service_net_uplink_t2r2' size=20/> </td>
   </tr>
