@@ -70,7 +70,7 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
      arguments=switch_name+" "+enable_pass+" "+admin_pass+" "+ktcseadmin_pass+" "+opadmin_pass+" "+service_net_uplink_t1r1+" "+service_net_uplink_t2r2+" "+storage_net_uplink_t1r1+" "+storage_net_uplink_t2r2+" "+switch1_service_lo+" "+switch2_service_lo+" "+switch1_storage_lo+" "+switch2_storage_lo+" "+mgmt_device_name+" "+mgmt_network+" "+service_host_network+" "+storage_host_network
      run_command="./builder\@openstack.ktis.prod-1.compute.tor.7050s-52 "+arguments
      run_result = manage.exec_bash("../builder",run_command)
-     form_content="create configuration status : ["+run_result.read()+"] ! <br><br>"
+     form_content="create configuration status : [  "+run_result.read()+"  ] ! <br><br>"
      form_content = form_content+self.link_line
 
    ### if self.variables_empty_status: not enough input values..................
