@@ -40,9 +40,12 @@ class Register_zone_aggrs:
     remove_form = open("./remove-zone-aggrs.form").read()
     remove_file_name = {}
     remove_file_name['filename'] = zone_agg_name
-    remove_zone_form= remove_form % remove_file_name    
-    self.insert_contents['form_name']="this zone aggregation switch information is already existed ! <br>"
-    self.insert_contents['form_name'] = self.insert_contents['form_name'] + "<h2>"+zone_agg_name+"</h2>"+read_messages+"<br>"+remove_zone_form
+    remove_file_name['cgi_weburl'] = manage.cgi_weburl
+    remove_file_name['cgi_alias'] = manage.cgi_alias
+    remove_zone_form= remove_form % remove_file_name
+    content_message="this zone aggregation switch information is already existed ! <br>"
+    content_message=content_message+"<h2>"+zone_agg_name+"</h2>"+read_messages+"<br>"+remove_zone_form    
+    self.insert_contents['form_name']=content_message
 
    #### if os.path.exists(zone_agg_path): not existed! 
    else:
@@ -55,7 +58,7 @@ class Register_zone_aggrs:
     else:
      self.insert_contents['form_name']="the informations are not enough to register ! <br><br>"
    # link to register zone agg switch page .......
-   link_line = "<a href=\"http://30.0.0.3/switch_netboot/register-zone-aggrs.py\"> Go to registe zone aggregation </a>"
+   link_line = "<a href=\"http://"+manage.cgi_weburl+"/"+manage.cgi_alias+"/register-zone-aggrs.py\"> Go to registe zone aggregation </a>"
    self.insert_contents['form_name'] = self.insert_contents['form_name'] +link_line
 
   #### if self.form.getvalue('key','') == 'remove':  
@@ -64,11 +67,19 @@ class Register_zone_aggrs:
    run_command = "rm -rf ./aggr-lib/"+filename
    run_result = manage.exec_bash("../",run_command)
    form_content =  open("./register-zone-aggrs.form").read()
+   cgi_content={}
+   cgi_content['cgi_weburl']=manage.cgi_weburl
+   cgi_content['cgi_alias']=manage.cgi_alias
+   form_content = form_content % cgi_content
    self.insert_contents['form_name']=form_content
 
   #### if self.form.getvalue('key','') == 'anything': 
   else:
    form_content =  open("./register-zone-aggrs.form").read()
+   cgi_content={}
+   cgi_content['cgi_weburl']=manage.cgi_weburl
+   cgi_content['cgi_alias']=manage.cgi_alias
+   form_content = form_content % cgi_content
    self.insert_contents['form_name']=form_content
 
 

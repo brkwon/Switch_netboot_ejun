@@ -1,4 +1,4 @@
-<form method='post' action="http://30.0.0.3/switch_netboot/register-zone-aggrs.py">
+<form method='post' action="http://%(cgi_weburl)s/%(cgi_alias)s/register-zone-aggrs.py">
 
  <input type='hidden' name='key' value='submitted'/>
 
