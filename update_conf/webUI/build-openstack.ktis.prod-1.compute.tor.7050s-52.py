@@ -42,6 +42,7 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
    ### confirm the values are not empty
    if self.variables_empty_status(switch_name,enable_pass,admin_pass,ktcseadmin_pass,opadmin_pass,service_host_network,storage_host_network,switch1_service_lo,switch1_storage_lo,switch2_service_lo,switch2_storage_lo,service_net_uplink_t1r1,service_net_uplink_t2r2,storage_net_uplink_t1r1,storage_net_uplink_t2r2,mgmt_device_name,mgmt_network):
     
+    ### file existance check.............................. 
     config_directory="../vars/"+mgmt_device_name
     if os.path.exists(config_directory):
      ### create table to show the configuration
@@ -63,12 +64,15 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
      remove_file_name = {}
      remove_file_name['filename'] = config_directory
      remove_cnf_form= remove_form % remove_file_name
-
-
      form_content = remove_cnf_form+self.link_line+"<br><br>"+display_config_table+"<br>"+remove_cnf_form
+    ### if os.path.exists(config_directory):
     else:
-     form_content='none'
-   ### if self.variables_empty_status: part
+     arguments=switch_name+" "+enable_pass+" "+admin_pass+" "+ktcseadmin_pass+" "+opadmin_pass+" "+service_net_uplink_t1r1+" "+service_net_uplink_t2r2+" "+storage_net_uplink_t1r1+" "+storage_net_uplink_t2r2+" "+switch1_service_lo+" "+switch2_service_lo+" "+switch1_storage_lo+" "+switch2_storage_lo+" "+mgmt_device_name+" "+mgmt_network+" "+service_host_network+" "+storage_host_network
+     run_command="./builder\@openstack.ktis.prod-1.compute.tor.7050s-52 "+arguments
+     run_result = manage.exec_bash("../builder",run_command)
+     form_content="create configuration status :"+run_result.read()+" ! <br><br>"
+
+   ### if self.variables_empty_status: not enough input values..................
    else:
     form_content="the informations are not enough to create the configuration ! <br><br>"
 
