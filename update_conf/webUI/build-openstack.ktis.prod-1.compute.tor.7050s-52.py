@@ -7,7 +7,7 @@ import manage
 
 class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
 
- link_line = "<a href=\"http://30.0.0.3/switch_netboot/build-openstack.ktis.prod-1.compute.tor.7050s-52.py\"> Go to build the configuration </a>"
+ link_line = "<a href=\"http://"+manage.cgi_weburl+"/"+manage.cgi_alias+"/build-openstack.ktis.prod-1.compute.tor.7050s-52.py\"> Go to build the configuration </a>"
 
  def __init__(self):
 
@@ -63,6 +63,8 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
      remove_form = open("./remove-openstack.ktis.prod-1.compute.tor.7050s-52.form").read()
      remove_file_name = {}
      remove_file_name['filename'] = config_directory
+     remove_file_name['cgi_weburl'] = manage.cgi_weburl
+     remove_file_name['cgi_alias'] = manage.cgi_alias
      remove_cnf_form= remove_form % remove_file_name
      form_content = remove_cnf_form+self.link_line+"<br><br>"+display_config_table+"<br>"+remove_cnf_form+self.link_line
     ### if os.path.exists(config_directory):
@@ -84,10 +86,20 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
    run_command = "rm -rf "+filename
    run_result = manage.exec_bash("./",run_command)
    form_content =  open("./build-openstack.ktis.prod-1.compute.tor.7050s-52.form").read()
+   cgi_content={}
+   cgi_content['cgi_weburl']=manage.cgi_weburl
+   cgi_content['cgi_alias']=manage.cgi_alias
+   form_content = form_content % cgi_content
 
   ### self.form.getvalue('key','') == 'anything': part
   else:
    form_content =  open("./build-openstack.ktis.prod-1.compute.tor.7050s-52.form").read()
+   cgi_content={}
+   cgi_content['cgi_weburl']=manage.cgi_weburl
+   cgi_content['cgi_alias']=manage.cgi_alias
+   form_content = form_content % cgi_content
+
+
   ### __init__ end
   self.insert_contents['form_name']=form_content
 
