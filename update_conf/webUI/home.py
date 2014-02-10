@@ -18,6 +18,7 @@ class Home:
 
  link_line = "<a href=\"http://"+manage.cgi_weburl+"/"+manage.cgi_alias+"/home.py\"> Go to Home Main </a>"
  config_directory="../vars"
+ template_directory="../conf-lib"
 
  def __init__(self):
 
@@ -27,7 +28,7 @@ class Home:
   self.insert_contents={}
   self.insert_contents['page_name']=" Switch Network Booting <br> "
 
-  if self.form.getvalue('key','') == 'submitted':
+  if self.form.getvalue('key','') == 'submitted_cnf':
    mgmt_device_name = self.form.getvalue('choose_mgmt','')
    if mgmt_device_name:
     display_config_table = self.display_config(mgmt_device_name)
@@ -35,12 +36,7 @@ class Home:
     remove_cnf_form = self.remove_form_generation("./remove-home.form",mgmt_device_name)
     form_content = self.link_line+"<br><br>"+remove_cnf_form+display_config_table+"<br>"+remove_cnf_form+self.link_line
    else:
-    form_content = Home.form_start + Home.hidden_input_form % ("submitted") + Home.select_form_start % ("choose_mgmt")
-    for filename in os.listdir(Home.config_directory):
-     if os.path.isdir(Home.config_directory+"/"+filename):
-      option_message = "<option value=\""+filename.strip()+"\">"+filename.strip()+"</option>"
-      form_content = form_content + option_message
-    form_content = form_content + Home.select_form_end + "<input type='submit' value='Show the Configuration'/>" + Home.form_end
+    form_content = self.form_select_config() + self.form_select_template()
 
   ### self.form.getvalue('key','') == 'remove': part
   elif self.form.getvalue('key','') == 'remove':
@@ -48,26 +44,34 @@ class Home:
    run_command = "rm -rf "+rm_filename
    run_result = manage.exec_bash("./",run_command)
    time.sleep(manage.sleep_time)
-   form_content = ''
-   form_content = Home.form_start + Home.hidden_input_form % ("submitted") + Home.select_form_start % ("choose_mgmt")
-   option_message = ''
-   for filename in os.listdir(Home.config_directory):
-    if os.path.isdir(Home.config_directory+"/"+filename):
-     option_message = "<option value=\""+filename.strip()+"\">"+filename.strip()+"</option>"
-     form_content = form_content + option_message
-   form_content = form_content + Home.select_form_end + "<input type='submit' value='Show the Configuration'/>" + Home.form_end
- 
+   form_content = self.form_select_config() + self.form_select_template()
+
   ### self.form.getvalue('key','') == 'anything': part
   else:
-   form_content = Home.form_start + Home.hidden_input_form % ("submitted") + Home.select_form_start % ("choose_mgmt")
-   for filename in os.listdir(Home.config_directory):
-    if os.path.isdir(Home.config_directory+"/"+filename):
-     option_message = "<option value=\""+filename.strip()+"\">"+filename.strip()+"</option>" 
-     form_content = form_content + option_message   
-   form_content = form_content + Home.select_form_end + "<input type='submit' value='Show the Configuration'/>" + Home.form_end
+   ### show configuration menu
+   form_content = self.form_select_config() + self.form_select_template()
+
 
   ### __init__ end
   self.insert_contents['form_name']=form_content
+
+ def form_select_config(self):
+  form_content = ''
+  form_content = Home.form_start+"<h4>Select the Configuration Name</h4>"+Home.hidden_input_form % ("submitted_cnf") + Home.select_form_start % ("choose_mgmt")
+  for filename in os.listdir(Home.config_directory):
+   if os.path.isdir(Home.config_directory+"/"+filename):
+    option_message = "<option value=\""+filename.strip()+"\">"+filename.strip()+"</option>"
+    form_content = form_content + option_message
+  form_content = form_content + Home.select_form_end + "<input type='submit' value='Show the Configuration'/>" + Home.form_end
+  return form_content
+
+ def form_select_template(self):
+  form_content = "<h4>Select the template to create configuration</h4>"
+  for filename in os.listdir(Home.template_directory):
+   if os.path.isfile(Home.template_directory+"/"+filename):
+    URL_link="<a href=http://"+manage.cgi_weburl+"/"+manage.cgi_alias+"/build-"+filename+".py>"+filename+"</a>"
+    form_content = form_content + URL_link
+  return form_content
 
  def display_config(self,mgmt_device_name):
   display_config_table="<h2>"+mgmt_device_name+" is already used ! </h2><br><table><tr>"
