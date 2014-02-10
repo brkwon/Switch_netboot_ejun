@@ -45,21 +45,21 @@ class Register_zone_aggrs:
     remove_zone_form= remove_form % remove_file_name
     content_message="this zone aggregation switch information is already existed ! <br>"
     content_message=content_message+"<h2>"+zone_agg_name+"</h2>"+read_messages+"<br>"+remove_zone_form    
-    self.insert_contents['form_name']=content_message
+    self.insert_contents['form_name']=content_message + manage.home_link_line +"<br><br>"
 
    #### if os.path.exists(zone_agg_path): not existed! 
    else:
     if self.variables_empty_status(agg1_name,agg1_lo,agg2_name,agg2_lo):
      run_command = "./register-zone-aggrs.sh "+platform_name+" "+zone_name+" "+service_name+" "+add_type+" "+agg1_name+" "+agg1_lo+" "+agg2_name+" "+agg2_lo
      run_result = manage.exec_bash("../",run_command)
-     self.insert_contents['form_name']="register process is "+run_result.read()+" ! <br><br>"
+     self.insert_contents['form_name']="register process is "+run_result.read()+" ! <br><br>"+ manage.home_link_line
 
     #### if self.variables_empty_status(agg1_name,agg1_lo,agg2_name,agg2_lo): empty case
     else:
      self.insert_contents['form_name']="the informations are not enough to register ! <br><br>"
    # link to register zone agg switch page .......
    link_line = "<a href=\"http://"+manage.cgi_weburl+"/"+manage.cgi_alias+"/register-zone-aggrs.py\"> Go to registe zone aggregation </a>"
-   self.insert_contents['form_name'] = self.insert_contents['form_name'] +link_line
+   self.insert_contents['form_name'] = self.insert_contents['form_name'] +link_line 
 
   #### if self.form.getvalue('key','') == 'remove':  
   elif self.form.getvalue('key','') == 'remove':
@@ -71,7 +71,7 @@ class Register_zone_aggrs:
    cgi_content['cgi_weburl']=manage.cgi_weburl
    cgi_content['cgi_alias']=manage.cgi_alias
    form_content = form_content % cgi_content
-   self.insert_contents['form_name']=form_content
+   self.insert_contents['form_name']=form_content + manage.home_link_line
 
   #### if self.form.getvalue('key','') == 'anything': 
   else:
@@ -80,7 +80,7 @@ class Register_zone_aggrs:
    cgi_content['cgi_weburl']=manage.cgi_weburl
    cgi_content['cgi_alias']=manage.cgi_alias
    form_content = form_content % cgi_content
-   self.insert_contents['form_name']=form_content
+   self.insert_contents['form_name']=form_content + manage.home_link_line
 
 
  def variables_empty_status(self, *args):
