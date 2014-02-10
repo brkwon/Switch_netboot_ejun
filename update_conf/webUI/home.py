@@ -36,7 +36,7 @@ class Home:
     remove_cnf_form = self.remove_form_generation("./remove-home.form",mgmt_device_name)
     form_content = self.link_line+"<br><br>"+remove_cnf_form+display_config_table+"<br>"+remove_cnf_form+self.link_line
    else:
-    form_content = self.form_select_config() + self.form_select_template()
+    form_content = self.form_zone_add() + self.form_select_config() + self.form_select_template()
 
   ### self.form.getvalue('key','') == 'remove': part
   elif self.form.getvalue('key','') == 'remove':
@@ -44,12 +44,12 @@ class Home:
    run_command = "rm -rf "+rm_filename
    run_result = manage.exec_bash("./",run_command)
    time.sleep(manage.sleep_time)
-   form_content = self.form_select_config() + self.form_select_template()
+   form_content = self.form_zone_add() + self.form_select_config() + self.form_select_template()
 
   ### self.form.getvalue('key','') == 'anything': part
   else:
    ### show configuration menu
-   form_content = self.form_select_config() + self.form_select_template()
+   form_content = self.form_zone_add() + self.form_select_config() + self.form_select_template()
 
 
   ### __init__ end
@@ -72,6 +72,14 @@ class Home:
     URL_link="<a href=http://"+manage.cgi_weburl+"/"+manage.cgi_alias+"/build-"+filename+".py>"+filename+"</a>"
     form_content = form_content + URL_link
   return form_content
+
+ def form_zone_add(self):
+  form_content = "<h4>Go to the Zone Aggregation register</h4>"
+  Zone_Link="<a href=\"http://"+manage.cgi_weburl+"/"+manage.cgi_alias+"/register-zone-aggrs.py\">Zone AGG Registration</a>"
+  form_content = form_content + Zone_Link
+  return form_content
+
+ 
 
  def display_config(self,mgmt_device_name):
   display_config_table="<h2>"+mgmt_device_name+" is already used ! </h2><br><table><tr>"
