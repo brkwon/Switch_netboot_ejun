@@ -26,12 +26,12 @@
  <h3> AGG Switch Information </h3>
  <table border="1">
   <tr>
-   <td> AGG #1 Switch Name : <input type='text' name='agg1_name' size=30/> </td>
-   <td> AGG #1 Switch Loopback IP address : <input type='text' name='agg1_lo' size=30/> </td>
+   <td><font size=2>AGG #1 Switch Name :</font><input type='text' name='agg1_name' size=30/> </td>
+   <td><font size=2>AGG #1 Switch Loopback IP address :</font><input type='text' name='agg1_lo' size=30/> </td>
   </tr>
   <tr>
-   <td> AGG #2 Switch Name : <input type='text' name='agg2_name' size=30/> </td>
-   <td> AGG #2 Switch Loopback IP address : <input type='text' name='agg2_lo' size=30/> </td>
+   <td><font size=2>AGG #2 Switch Name :</font><input type='text' name='agg2_name' size=30/> </td>
+   <td><font size=2>AGG #2 Switch Loopback IP address :</font><input type='text' name='agg2_lo' size=30/> </td>
   </tr>
  </table><br>
 

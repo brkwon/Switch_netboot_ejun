@@ -18,8 +18,6 @@ class Register_zone_aggrs:
   self.insert_contents={}
   self.insert_contents['page_name']="Register Zone AGG Switch "
 
-  link_line = "<a href=\"http://"+manage.cgi_weburl+"/"+manage.cgi_alias+"/register-zone-aggrs.py\"> Go to registe zone aggregation </a>"
-
   if self.form.getvalue('key','') == 'submitted':
    # requested variables for register........
    platform_name = self.form.getvalue('platform_name','').strip()
@@ -42,6 +40,7 @@ class Register_zone_aggrs:
      read_messages = read_messages + read_zone_content.strip() + "<br>"
      read_zone_content = read_zone_file.readline()
     read_zone_file.close()
+    ### remove form creation
     remove_form = open("./remove-zone-aggrs.form").read()
     remove_file_name = {}
     remove_file_name['filename'] = zone_agg_name
@@ -58,7 +57,7 @@ class Register_zone_aggrs:
      run_command = "./register-zone-aggrs.sh "+platform_name+" "+zone_name+" "+service_name+" "+add_type+" "+agg1_name+" "+agg1_lo+" "+agg2_name+" "+agg2_lo
      run_result = manage.exec_bash("../",run_command)
      time.sleep(manage.sleep_time)
-     form_content = "register process is "+run_result.read()+" ! <br><br>"
+     form_content = "register process is [ "+run_result.read()+" ] ! <br><br>"
 
     #### if self.variables_empty_status(agg1_name,agg1_lo,agg2_name,agg2_lo): empty case
     else:

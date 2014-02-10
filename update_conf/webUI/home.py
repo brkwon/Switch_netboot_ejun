@@ -41,6 +41,12 @@ class Home:
   ### self.form.getvalue('key','') == 'remove': part
   elif self.form.getvalue('key','') == 'remove':
    rm_filename = self.form.getvalue('filename','')
+   ### hard link
+   hard_link="/var/www/"+rm_filename.split("/")[2]
+   rm_hard_link="rm -rf "+hard_link
+   run_result = manage.exec_bash("./",rm_hard_link)
+   time.sleep(manage.sleep_time)
+   ### directory rm
    run_command = "rm -rf "+rm_filename
    run_result = manage.exec_bash("./",run_command)
    time.sleep(manage.sleep_time)

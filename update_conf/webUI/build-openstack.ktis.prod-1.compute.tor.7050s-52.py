@@ -67,6 +67,12 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52(Home):
   ### self.form.getvalue('key','') == 'remove': part
   elif self.form.getvalue('key','') == 'remove':
    filename = self.form.getvalue('filename','')
+   ### hard link
+   hard_link="/var/www/"+filename.split("/")[2]
+   rm_hard_link="rm -rf "+hard_link
+   run_result = manage.exec_bash("./",rm_hard_link)
+   time.sleep(manage.sleep_time)
+   ### directory rm
    run_command = "rm -rf "+filename
    run_result = manage.exec_bash("./",run_command)
    time.sleep(manage.sleep_time)
