@@ -3,9 +3,11 @@
 import cgi
 import cgitb
 import os
+import time
 import manage
+from home import Home
 
-class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
+class Build_openstack_ktis_prod_1_compute_tor_7050s_52(Home):
 
  link_line = "<a href=\"http://"+manage.cgi_weburl+"/"+manage.cgi_alias+"/build-openstack.ktis.prod-1.compute.tor.7050s-52.py\"> Go to build the configuration </a>"
  config_directory="../vars"
@@ -17,7 +19,6 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
   self.base_html = open("./base.html").read()
   self.insert_contents={}
   self.insert_contents['page_name']=" Build the Configuration <br> ( openstack.ktis.prod-1.compute.tor.7050s-52 ) "
-
 
   if self.form.getvalue('key','') == 'submitted':
 
@@ -48,12 +49,7 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
      ### create table to show the configuration
      display_config_table = self.display_config(mgmt_device_name)
      ### remove form insert
-     remove_form = open("./remove-openstack.ktis.prod-1.compute.tor.7050s-52.form").read()
-     remove_file_name = {}
-     remove_file_name['filename'] = self.config_directory+"/"+mgmt_device_name
-     remove_file_name['cgi_weburl'] = manage.cgi_weburl
-     remove_file_name['cgi_alias'] = manage.cgi_alias
-     remove_cnf_form= remove_form % remove_file_name
+     remove_cnf_form = self.remove_form_generation("./remove-openstack.ktis.prod-1.compute.tor.7050s-52.form",mgmt_device_name)
      form_content = remove_cnf_form+self.link_line+"<br><br>"+display_config_table+"<br>"+remove_cnf_form+self.link_line
     ### if os.path.exists(config_directory):
     else:
@@ -73,6 +69,7 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
    filename = self.form.getvalue('filename','')
    run_command = "rm -rf "+filename
    run_result = manage.exec_bash("./",run_command)
+   time.sleep(manage.sleep_time)
    form_content =  open("./build-openstack.ktis.prod-1.compute.tor.7050s-52.form").read()
    cgi_content={}
    cgi_content['cgi_weburl']=manage.cgi_weburl
@@ -88,29 +85,7 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
    form_content = form_content % cgi_content
 
   ### __init__ end
-  self.insert_contents['form_name']=form_content
-
- def display_config(self,mgmt_device_name):
-  display_config_table="<h2>"+mgmt_device_name+" is already used ! </h2><br><table><tr>"
-  cnf_dir_name=self.config_directory+"/"+mgmt_device_name
-  for filename in os.listdir(cnf_dir_name):
-   display_config_table = display_config_table + "<td><font size=3>"+filename+"</font></td>"
-  display_config_table = display_config_table + "</tr><tr>"
-  for filename in os.listdir(cnf_dir_name):
-   read_cnf_contents=''
-   read_cnf_file = file(cnf_dir_name+"/"+filename,'r')
-   read_messages=read_cnf_file.readline()
-   while read_messages:
-    read_cnf_contents=read_cnf_contents+read_messages.strip()+"<br>"
-    read_messages=read_cnf_file.readline()
-   display_config_table = display_config_table +"<td><font size=2>"+read_cnf_contents+"</font></td>"
-  display_config_table = display_config_table +"</tr></table>"
-  return display_config_table
-
-
-
-
-
+  self.insert_contents['form_name']=form_content +"<br><br>"+manage.home_link_line
 
  def variables_empty_status(self, *args):
   status=True

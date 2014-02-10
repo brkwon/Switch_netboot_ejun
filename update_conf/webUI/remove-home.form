@@ -1,0 +1,7 @@
+<form method='post' action="http://%(cgi_weburl)s/%(cgi_alias)s/home.py">
+
+ <input type='hidden' name='key' value='remove'/>
+ <input type='hidden' name='filename' value=%(filename)s />
+ <input type='submit' value='Remove configuration'/>
+
+</form>
