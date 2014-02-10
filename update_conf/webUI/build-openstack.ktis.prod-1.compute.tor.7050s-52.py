@@ -8,6 +8,7 @@ import manage
 class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
 
  link_line = "<a href=\"http://"+manage.cgi_weburl+"/"+manage.cgi_alias+"/build-openstack.ktis.prod-1.compute.tor.7050s-52.py\"> Go to build the configuration </a>"
+ config_directory="../vars"
 
  def __init__(self):
 
@@ -43,26 +44,13 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
    if self.variables_empty_status(switch_name,enable_pass,admin_pass,ktcseadmin_pass,opadmin_pass,service_host_network,storage_host_network,switch1_service_lo,switch1_storage_lo,switch2_service_lo,switch2_storage_lo,service_net_uplink_t1r1,service_net_uplink_t2r2,storage_net_uplink_t1r1,storage_net_uplink_t2r2,mgmt_device_name,mgmt_network):
     
     ### file existance check.............................. 
-    config_directory="../vars/"+mgmt_device_name
-    if os.path.exists(config_directory):
+    if os.path.exists(self.config_directory+"/"+mgmt_device_name):
      ### create table to show the configuration
-     display_config_table="<h2>"+mgmt_device_name+" is already used ! </h2><br><table><tr>"
-     for filename in os.listdir(config_directory):
-      display_config_table = display_config_table + "<td><font size=3>"+filename+"</font></td>"
-     display_config_table = display_config_table + "</tr><tr>"
-     for filename in os.listdir(config_directory):
-      read_cnf_contents=''
-      read_cnf_file = file(config_directory+"/"+filename,'r')
-      read_messages=read_cnf_file.readline()
-      while read_messages:
-       read_cnf_contents=read_cnf_contents+read_messages.strip()+"<br>"
-       read_messages=read_cnf_file.readline()
-      display_config_table = display_config_table +"<td><font size=2>"+read_cnf_contents+"</font></td>"
-     display_config_table = display_config_table +"</tr></table>"
+     display_config_table = self.display_config(mgmt_device_name)
      ### remove form insert
      remove_form = open("./remove-openstack.ktis.prod-1.compute.tor.7050s-52.form").read()
      remove_file_name = {}
-     remove_file_name['filename'] = config_directory
+     remove_file_name['filename'] = self.config_directory+"/"+mgmt_device_name
      remove_file_name['cgi_weburl'] = manage.cgi_weburl
      remove_file_name['cgi_alias'] = manage.cgi_alias
      remove_cnf_form= remove_form % remove_file_name
@@ -99,9 +87,30 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52:
    cgi_content['cgi_alias']=manage.cgi_alias
    form_content = form_content % cgi_content
 
-
   ### __init__ end
   self.insert_contents['form_name']=form_content
+
+ def display_config(self,mgmt_device_name):
+  display_config_table="<h2>"+mgmt_device_name+" is already used ! </h2><br><table><tr>"
+  cnf_dir_name=self.config_directory+"/"+mgmt_device_name
+  for filename in os.listdir(cnf_dir_name):
+   display_config_table = display_config_table + "<td><font size=3>"+filename+"</font></td>"
+  display_config_table = display_config_table + "</tr><tr>"
+  for filename in os.listdir(cnf_dir_name):
+   read_cnf_contents=''
+   read_cnf_file = file(cnf_dir_name+"/"+filename,'r')
+   read_messages=read_cnf_file.readline()
+   while read_messages:
+    read_cnf_contents=read_cnf_contents+read_messages.strip()+"<br>"
+    read_messages=read_cnf_file.readline()
+   display_config_table = display_config_table +"<td><font size=2>"+read_cnf_contents+"</font></td>"
+  display_config_table = display_config_table +"</tr></table>"
+  return display_config_table
+
+
+
+
+
 
  def variables_empty_status(self, *args):
   status=True
