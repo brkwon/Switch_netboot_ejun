@@ -6,7 +6,7 @@ sys.stdout
 # This address is using the HTTP Protocol
 configUrl = "http://30.0.0.3/%s/%s"
 swiUrl = "http://30.0.0.3/swi/%s"
-request_swiversion='4.10.3'
+request_swiversion='4.12.5.1'
 swiversion = ''
 
 # Look at the boot-config file and get the currently set EOS version
