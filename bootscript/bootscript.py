@@ -4,12 +4,10 @@ sys.stdout
 
 # This points to the ZTP server, change the IP address to match the server
 # This address is using the HTTP Protocol
-configUrl = "http://30.0.0.3/switch_netboot/switch_config/%s"
-
-
-#swiUrl = "http://30.0.0.3/arista_ztp/swi/%s/%s/%s"
-#swiUrl = "http://30.0.0.3/arista_ztp/swi/%s"
-#swiversion = ''
+configUrl = "http://30.0.0.3/%s/%s"
+swiUrl = "http://30.0.0.3/swi/%s"
+request_swiversion='4.10.3'
+swiversion = ''
 
 # Look at the boot-config file and get the currently set EOS version
 fd = open("/etc/swi-version", "r")
@@ -108,22 +106,12 @@ neighPortifname = getNeighPortName('Management1')
 # Parse the Data from LLDP values
 mgmtDevice=neighDevice.split(r".")[0]
 mgmtPortDesc=neighPort.split()[0]
-if int(neighPortifname.split(r"/")[1]) % 2:
- confID="1"
-else:
- confID="2"
 
-requireConfigname=mgmtPortDesc+"-"+confID
-
-
-printLog ( '9999999999999999999999999Ma1 is neighbour with %s, desc %s, interface %s' % (mgmtDevice, mgmtPortDesc, requireConfigname))
 # Create the get config URL in the form http://ztp-server/config/vEOSMGMT/Ethernet1
-#parsedUrl = configUrl % (neighDevice, neighPort)
-#parsedUrl = configUrl % ('startup-config')
+parsedUrl = configUrl % (mgmtDevice, mgmtPortDesc)
+printLog ( '[ ejun logger ] config down parsedUrl is %s' % (parsedUrl))
 
-#printLog ( 'Getting %s' % parsedUrl)
 # Download the config to flash
-
 # Check if the switch is in the database.
 if not urllib.urlopen( parsedUrl ).read() == "Device not found":
 	urllib.urlretrieve(parsedUrl, '/mnt/flash/startup-config')
@@ -132,16 +120,23 @@ else:
 	sys.exit( 1 )
 
 # Build the URL that sends the current switch version
-parsedUrl = swiUrl % (swiversion, neighDevice, neighPort)
-#parsedUrl = swiUrl % (swiversion)
+parsedUrl = swiUrl % (request_swiversion)
+printLog ( '[ ejun logger ] swi down parsedUrl is %s' % (parsedUrl))
+
 #Download the new EOS if we need it.
-#printLog ( 'Checking EOS Version - Current Version %s' % swiversion)
+downlad_status=False
+if request_swiversion == swiversion:
+ download_status=False
+else:
+ download_status=True
+
 eosFilename = None
 ret = urllib.urlopen(parsedUrl)
-#ret = urllib.urlopen('http://30.0.0.3/arista_ztp/swi/4.12.3.3')
 updateBootConfig = True
 err = 0
-if ret.geturl() == parsedUrl:
+
+#if ret.geturl() == parsedUrl:
+if not download_status:
    printLog('No Update Required')
    updateBootConfig = False
 else:
@@ -173,7 +168,7 @@ else:
 			if download == True:
 				# Get the size of the file on the server
 				swiSize = ret.info()['content-length']
-				urllib.urlretrieve('http://30.0.0.3/arista_ztp/swi/4.12.3.3', '/mnt/flash/%s' % eosFilename)
+				urllib.urlretrieve(parsedUrl, '/mnt/flash/%s' % eosFilename)
 	                        printLog('download url = %s' % parsedUrl)
 				# After it has downloaded, get the size on flash
 				localFileSize = str(os.stat('/mnt/flash/%s' % eosFilename).st_size)
