@@ -307,5 +307,15 @@ sed -i 's/CHANGE_SERVICE_BGP_UPLINK_LO/'$SERVICE_AGGR1_LO'/' $TOR1_CONF
 sed -i 's/CHANGE_SERVICE_BGP_ROUTER_ID/'$ROUTER_TOR2_SERVICE_LO_NETWORK_ID'/' $TOR2_CONF
 sed -i 's/CHANGE_SERVICE_BGP_UPLINK_LO/'$SERVICE_AGGR2_LO'/' $TOR2_CONF
 
-### step 12. finish all processing
+### step 12. 
+WebUrl="/var/www/$MGMT_SWITCH_NAME"
+if [[ -d $WebUrl ]]
+then
+ rm -rf $WebUrl
+fi
+mkdir $WebUrl
+ln $TOR1_CONF $WebUrl
+ln $TOR2_CONF $WebUrl
+
+### step 13. finish all processing
 echo "completed"
