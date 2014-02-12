@@ -1,0 +1,66 @@
+<form method='post' action="http://%(cgi_weburl)s/%(cgi_alias)s/build-openstack.ktis.prod-1.storage.tor.7124sx.py">
+
+ <input type='hidden' name='key' value='submitted'/>
+
+ Switch Common Name (ex, CATR-K05R-ST-08R05) : <input type='text' name='switch_name' size=30/><br><br>
+ Account password Information :<br><br>
+ <table border="1">
+  <tr>
+   <td align='center'> <h8> enable </h8> </td>
+   <td align='center'> <h8> 'admin' </h8> </td>
+   <td align='center'> <h8> 'ktcseadmin' </h8> </td>
+   <td align='center'> <h8> 'opadmin' </h8> </td>
+  </tr>
+  <tr>
+   <td align='center' width='180'> <input type='text' name='enable_pass' size=20/> </td>
+   <td align='center' width='180'> <input type='text' name='admin_pass' size=20/> </td>
+   <td align='center' width='180'> <input type='text' name='ktcseadmin_pass' size=20/> </td>
+   <td align='center' width='180'> <input type='text' name='opadmin_pass' size=20/> </td>
+  </tr>
+ <table>
+
+ <h4> Served Network Register for service and storage network : </h4>
+ <table border="1">
+ <tr><td>
+ <font size="2"> Storage Network Address : <input type='text' name='storage_host_network' size=30/> </font>
+ </td></tr>
+ </table>
+
+ <h4> Loopback IP address for </h4>
+ <table>
+  <tr>
+   <td align='left' width='180'> <font size='2'> Switch 1 Storage Network : </font size> </td>
+   <td align='left' width='220'> <input type='text' name='switch1_storage_lo' size=20/> </td>
+  </tr>
+  <tr>
+   <td align='left' width='180'> <font size='2'> Switch 2 Storage Network : </font size> </td>
+   <td align='left' width='220'> <input type='text' name='switch2_storage_lo' size=20/> </td>
+  </tr>
+ <table><br>
+
+ <h4> UPlink Serail Netowrk for </h4>
+ <table>
+  <tr>
+   <td align='center' width='140'> <font size='3'> Storage network : </font size> </td>
+   <td align='center' width='140'> <font size='2'> Switch 1 - Uplink 1 : </font size> </td>
+   <td align='center' width='180'> <input type='text' name='storage_net_uplink_t1r1' size=20/> </td>
+   <td align='center' width='140'> <font size='2'> Switch 2 - Uplink 2 : </font size> </td>
+   <td align='center' width='180'> <input type='text' name='storage_net_uplink_t2r2' size=20/> </td>
+  </tr>
+ <table><br>
+
+ <h4> MGMT Network Configuration for </h4>
+ <table border="1">
+  <tr>
+   <td align='center' width='200'> <font size='2'> management Device Name<br>( mGMT Switch Host Name )  </font size> </td>
+   <td align='center' width='200'> <font size='2'> management Network  </font size> </td>
+  </tr>
+  <tr>
+   <td align='center' width='200'> <input type='text' name='mgmt_device_name' size=30/> </td>
+   <td align='center' width='200'> <input type='text' name='mgmt_network' size=30/> </td>
+  </tr>
+ <table><br>
+
+ <input type='submit' value='Register and Show'/>
+
+</form>
