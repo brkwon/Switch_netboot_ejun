@@ -1,0 +1,264 @@
+#! /usr/bin/env bash
+
+WORKING_DIR=`pwd`
+AGGR_LIB="../aggr-lib"
+CONF_LIB="../conf-lib"
+VARS_DIR="../vars"
+
+### Create the Garbage file to save information temporary
+TEMPMEM="/tmp/value_memory"
+if [[ ! -f $TEMPMEM ]]
+then
+ touch $TEMPMEM
+ chmod 777 $TEMPMEM
+fi
+
+### Re-arrange the Template file Name to Build Up......
+FILE_NAME=$0
+TEMPLATE_FILE_NAME=`echo $FILE_NAME | awk -F'[@]' '{print $2}'`
+TEMPLATE_FILE=$CONF_LIB/$TEMPLATE_FILE_NAME
+if [[ ! -f $TEMPLATE_FILE ]]
+then
+ echo "[ error ] $TEMPLATE_FILE template file does not exist..... "
+ exit
+fi
+
+### get information from the template name ............
+PLATFORM_TYPE=`echo $TEMPLATE_FILE_NAME | awk -F'[.]' '{print $1}'`
+ZONE_NAME=`echo $TEMPLATE_FILE_NAME | awk -F'[.]' '{print $2}'`
+SERVICE_TYPE=`echo $TEMPLATE_FILE_NAME | awk -F'[.]' '{print $3}'`
+POD_TYPE=`echo $TEMPLATE_FILE_NAME | awk -F'[.]' '{print $4}'`
+LAYER_TYPE=`echo $TEMPLATE_FILE_NAME | awk -F'[.]' '{print $5}'`
+SWITCH_DEVICE=`echo $TEMPLATE_FILE_NAME | awk -F'[.]' '{print $6}'`
+
+### Confirm the Zone Environment File existance and Sourcing the files......
+ZONEFILE_SRV_AGGR=$AGGR_LIB/$PLATFORM_TYPE.$ZONE_NAME.$SERVICE_TYPE.service-aggrs
+ZONEFILE_STR_AGGR=$AGGR_LIB/$PLATFORM_TYPE.$ZONE_NAME.$SERVICE_TYPE.storage-aggrs
+if [ ! -f $ZONEFILE_SRV_AGGR -o ! -f $ZONEFILE_STR_AGGR ]
+then
+ echo "[ error ] no aggregation (zone) information files are not existed..... "
+ exit
+fi
+source $ZONEFILE_SRV_AGGR
+source $ZONEFILE_STR_AGGR
+
+### Define the Input Variable to Bulde up the TOR configuration......
+#
+if [[ $# != 12 ]]
+then
+ echo "[ error ] $0 command is required like below"
+ echo "$0"
+ echo "     [ SWICHES_NAME ]         : this is tor switches name, such as CATR-K05R-SE-08R05"
+ echo "     [  ENABLE PASS ]         : the password for enable"
+ echo "     [  ADMIN PASS  ]         : the password for 'admin' account"
+ echo "     [  KTCSE PASS  ]         : the password for 'ktcseadmin' account"
+ echo "     [  OPMAN PASS  ]         : the password for 'opadmin' account"
+ echo "     [  TOR1 STORAGE UPLINK NETWORK ] : uplink serial network for tor1 storage network"
+ echo "     [  TOR2 STORAGE UPLINK NETWORK ] : uplink serial network for tor2 storage network"
+ echo "     [  TOR1 STORAGE LO NETWORK ]     : loopback ip address for tor1 storage network"
+ echo "     [  TOR2 STORAGE LO NETWORK ]     : loopback ip address for tor2 storage network"
+ echo "     [  MGMT SWITCH NAME ]    : management switch name"
+ echo "     [  MGMT NETWORK     ]    : management netowrk"
+ echo "     [  STORAGE NETWORK ]     : storage network for end-host"
+ exit
+fi
+
+SWITCHES_NAME=$1
+CHANGE_ENABLE_PASS=$2
+CHANGE_ADMIN_PASS=$3
+CHANGE_KTCSEADMIN_PASS=$4
+CHANGE_OPADMIN_PASS=$5
+TOR1_STORAGE_UPLINK_NETWORK=$6
+TOR2_STORAGE_UPLINK_NETWORK=$7
+TOR1_STORAGE_LO_NETWORK=${8}
+TOR2_STORAGE_LO_NETWORK=${9}
+MGMT_SWITCH_NAME=${10}
+CHANGE_MGMT_NETWORK=${11}
+CHANGE_STORAGE_NETWORK=${12}
+
+#### define function to compare ip address subnet
+Subnet_Compare(){
+ IN_Net=$1
+ IN_Mask=$2
+ IN_Subnet=`echo $IN_Net | awk -F'[/]' '{print $2}'`
+ if [[ $IN_Subnet ]]
+ then
+  if [[ $IN_Subnet != $IN_Mask ]]
+  then
+   echo "$IN_Net is wrong subnet [$IN_Mask bit]......"
+   exit
+  else
+   IN_Net=`echo $IN_Net | awk -F'[/]' '{print $1}'`
+  fi
+ fi
+ Return_Subnet_Compare=$IN_Net"/"$IN_Mask
+}
+
+
+#### confirm input ip address validation of subnet mask
+Subnet_Compare $TOR1_STORAGE_UPLINK_NETWORK 30
+TOR1_STORAGE_UPLINK_NETWORK=$Return_Subnet_Compare
+
+Subnet_Compare $TOR2_STORAGE_UPLINK_NETWORK 30
+TOR2_STORAGE_UPLINK_NETWORK=$Return_Subnet_Compare
+
+Subnet_Compare $TOR1_STORAGE_LO_NETWORK 32
+TOR1_STORAGE_LO_NETWORK=$Return_Subnet_Compare
+
+Subnet_Compare $TOR2_STORAGE_LO_NETWORK 32
+TOR2_STORAGE_LO_NETWORK=$Return_Subnet_Compare
+
+### create the Configuration Directory and common (shared) init configuration is copied..........
+#
+ZTP_Config_DIR=$VARS_DIR/$MGMT_SWITCH_NAME
+if [[ -d $ZTP_Config_DIR ]]
+then
+ echo "[ error ] the configurations connected on $MGMT_SWITCH_NAME are existed........."
+ exit
+fi
+mkdir -p $ZTP_Config_DIR
+chmod 777 $ZTP_Config_DIR
+Common_CONF_FILE=$ZTP_Config_DIR/$SWITCHES_NAME-Common
+cp $TEMPLATE_FILE $Common_CONF_FILE
+
+### Step 1. UPdate the PASSWORD Part configuration from common configuration ...........
+sed -i 's/CHANGE_ENABLE_PASS/'$CHANGE_ENABLE_PASS'/' $Common_CONF_FILE
+sed -i 's/CHANGE_ADMIN_PASS/'$CHANGE_ADMIN_PASS'/' $Common_CONF_FILE
+sed -i 's/CHANGE_KTCSEADMIN_PASS/'$CHANGE_KTCSEADMIN_PASS'/' $Common_CONF_FILE
+sed -i 's/CHANGE_OPADMIN_PASS/'$CHANGE_OPADMIN_PASS'/' $Common_CONF_FILE
+
+### Step 2. generate the TORs configurations for UP and Down ...........
+TOR1_CONF=$ZTP_Config_DIR/$SWITCHES_NAME-01
+TOR2_CONF=$ZTP_Config_DIR/$SWITCHES_NAME-02
+cp $Common_CONF_FILE $TOR1_CONF
+cp $Common_CONF_FILE $TOR2_CONF
+rm -rf $Common_CONF_FILE
+
+### Step 3. change the host name in the configuration file ..........
+sed -i 's/CHANGE_HOSTNAME/'$SWITCHES_NAME-01'/' $TOR1_CONF
+sed -i 's/CHANGE_HOSTNAME/'$SWITCHES_NAME-02'/' $TOR2_CONF
+
+### Define function for step 4 and 5 ........... 
+Get_SerialIP(){
+ ipcalc $1 > $TEMPMEM
+ TEMP_MASK=`cat $TEMPMEM | grep -i 'Netmask' | awk '{print $4}'`
+ TEMP_IP=`cat $TEMPMEM | grep -i 'HostMax' | awk '{print $2}'`"\/"$TEMP_MASK
+ Return_UPLINK_Network=`cat $TEMPMEM | grep -i 'Network' | awk '{print $2}' | awk -F'[/]' '{print $1}'`"\/"$TEMP_MASK
+}
+
+### step 4. update compute TOR Uplink for storage network ............
+sed -i 's/CHANGE_STORAGE_UPLINK_PORTNAME/'$STORAGE_AGGR1_NAME'/' $TOR1_CONF
+sed -i 's/CHANGE_STORAGE_UPLINK_PORTNAME/'$STORAGE_AGGR2_NAME'/' $TOR2_CONF
+
+### step 4-1. update comput tor 1 uplink network for storage ...........
+Get_SerialIP $TOR1_STORAGE_UPLINK_NETWORK
+ROUTER_TOR1_STORAGE_UPLINK_NETWORK=$Return_UPLINK_Network
+sed -i 's/CHANGE_STORAGE_UPLINK_NETWORK/'$TEMP_IP'/' $TOR1_CONF
+
+### step 4-2. update compute tor 2 uplink network for storage ...........
+Get_SerialIP $TOR2_STORAGE_UPLINK_NETWORK
+ROUTER_TOR2_STORAGE_UPLINK_NETWORK=$Return_UPLINK_Network
+sed -i 's/CHANGE_STORAGE_UPLINK_NETWORK/'$TEMP_IP'/' $TOR2_CONF
+
+### Define function fot step 5
+Get_LoopbackIP(){
+ ipcalc $1 > $TEMPMEM
+ TEMP_MASK=`cat $TEMPMEM | grep -i 'Netmask' | awk '{print $4}'`
+ TEMP_IP=`cat $TEMPMEM | grep -i 'Hostroute' | awk '{print $2}'`
+ TEMP_LO_Network=$TEMP_IP"\/"$TEMP_MASK
+}
+
+### step 5-1. update tor 1 storage network loopback ip address.................
+Get_LoopbackIP $TOR1_STORAGE_LO_NETWORK
+ROUTER_TOR1_STORAGE_LO_NETWORK=$TEMP_LO_Network
+ROUTER_TOR1_STORAGE_LO_NETWORK_ID=$TEMP_IP
+sed -i 's/CHANGE_STORAGE_LO_NETWORK/'$TEMP_LO_Network'/' $TOR1_CONF
+
+### step 5-2. update tor 2 storage network loopback ip address..............
+Get_LoopbackIP $TOR2_STORAGE_LO_NETWORK
+ROUTER_TOR2_STORAGE_LO_NETWORK=$TEMP_LO_Network
+ROUTER_TOR2_STORAGE_LO_NETWORK_ID=$TEMP_IP
+sed -i 's/CHANGE_STORAGE_LO_NETWORK/'$TEMP_LO_Network'/' $TOR2_CONF
+
+### Define the function for step 6 and 7.....................
+Get_GW_Info(){
+ ipcalc $1 > $TEMPMEM
+ TEMP_MASK=`cat $TEMPMEM | grep -i 'Netmask' | awk '{print $4}'`
+ TEMP_NETWORK=`cat $TEMPMEM | grep -i 'HostMax' | awk '{print $2}'`
+ CLASS_A=`echo $TEMP_NETWORK | awk -F'[.]' '{print $1}'`
+ CLASS_B=`echo $TEMP_NETWORK | awk -F'[.]' '{print $2}'`
+ CLASS_C=`echo $TEMP_NETWORK | awk -F'[.]' '{print $3}'`
+ CLASS_D=`echo $TEMP_NETWORK | awk -F'[.]' '{print $4}'`
+ END_IP_1=`expr $CLASS_D - $2`
+ END_IP_2=`expr $CLASS_D - $3`
+ Return_TOR1_IP_NETWORK=$CLASS_A.$CLASS_B.$CLASS_C.$END_IP_1"\/"$TEMP_MASK
+ Return_TOR2_IP_NETWORK=$CLASS_A.$CLASS_B.$CLASS_C.$END_IP_2"\/"$TEMP_MASK
+ Return_GW_IP=`cat $TEMPMEM | grep -i 'HostMin' | awk '{print $2}'`
+ Return_Network=`cat $TEMPMEM | grep -i 'Network' | awk '{print $2}' | awk -F'[/]' '{print $1}'`"\/"$TEMP_MASK
+}
+
+#### Step 6. management network update for both tor switches ...................
+Get_GW_Info $CHANGE_MGMT_NETWORK 3 2
+sed -i 's/CHANGE_MGMT_NETWORK/'$Return_TOR1_IP_NETWORK'/' $TOR1_CONF
+sed -i 's/CHANGE_MGMT_GATEWAY/'$Return_GW_IP'/' $TOR1_CONF
+sed -i 's/CHANGE_MGMT_NETWORK/'$Return_TOR2_IP_NETWORK'/' $TOR2_CONF
+sed -i 's/CHANGE_MGMT_GATEWAY/'$Return_GW_IP'/' $TOR2_CONF
+
+#### step 6-1. storage network configuration update..............
+Get_GW_Info $CHANGE_STORAGE_NETWORK 2 1
+ROUTER_STORAGE_NETWORK=$Return_Network
+sed -i 's/CHANGE_STORAGE_NETWORK/'$Return_TOR1_IP_NETWORK'/' $TOR1_CONF
+sed -i 's/CHANGE_STORAGE_GATEWAY/'$TEMP_NETWORK'/' $TOR1_CONF
+sed -i 's/CHANGE_STORAGE_NETWORK/'$Return_TOR2_IP_NETWORK'/' $TOR2_CONF
+sed -i 's/CHANGE_STORAGE_GATEWAY/'$TEMP_NETWORK'/' $TOR2_CONF
+
+#### Step 7. OSPF Routing Network Configuration Update
+#### step 7-1. tor1 storage network ospf configuration.............
+sed -i 's/CHANGE_STORAGE_OSPF_ROUTER_ID/'$ROUTER_TOR1_STORAGE_LO_NETWORK_ID'/' $TOR1_CONF
+sed -i 's/CHANGE_STORAGE_OSPF_UPLINK/'$ROUTER_TOR1_STORAGE_UPLINK_NETWORK'/' $TOR1_CONF
+sed -i 's/CHANGE_STORAGE_OSPF_LO/'$ROUTER_TOR1_STORAGE_LO_NETWORK'/' $TOR1_CONF
+sed -i 's/CHANGE_STORAGE_OSPF_CONNECT/'$ROUTER_STORAGE_NETWORK'/' $TOR1_CONF
+
+#### step 7-2. tor2 storage network ospf configuration ............
+sed -i 's/CHANGE_STORAGE_OSPF_ROUTER_ID/'$ROUTER_TOR2_STORAGE_LO_NETWORK_ID'/' $TOR2_CONF
+sed -i 's/CHANGE_STORAGE_OSPF_UPLINK/'$ROUTER_TOR2_STORAGE_UPLINK_NETWORK'/' $TOR2_CONF
+sed -i 's/CHANGE_STORAGE_OSPF_LO/'$ROUTER_TOR2_STORAGE_LO_NETWORK'/' $TOR2_CONF
+sed -i 's/CHANGE_STORAGE_OSPF_CONNECT/'$ROUTER_STORAGE_NETWORK'/' $TOR2_CONF
+
+#### step 8. Mlag Configuration .........................
+Get_Serial_BothIP(){
+ ipcalc $1 > $TEMPMEM
+ TEMP_MASK=`cat $TEMPMEM | grep -i 'Netmask' | awk '{print $4}'`
+ TEMP_IP1=`cat $TEMPMEM | grep -i 'HostMin' | awk '{print $2}'`
+ TEMP_IP2=`cat $TEMPMEM | grep -i 'HostMax' | awk '{print $2}'`
+}
+
+#### step 8-1. get mlag link address and update the configuration
+MLAG_NET_IPADDR="169.254.1.0/30"
+
+Get_Serial_BothIP $MLAG_NET_IPADDR
+TOR1_MLAG_IP=$TEMP_IP1
+TOR2_MLAG_IP=$TEMP_IP2
+MLAG_MASK=$TEMP_MASK
+
+#### step 8-2. update the configuration
+sed -i 's/MLAG_NETWORK/'$TOR1_MLAG_IP'\/'$MLAG_MASK'/' $TOR1_CONF
+sed -i 's/MLAG_NETWORK/'$TOR2_MLAG_IP'\/'$MLAG_MASK'/' $TOR2_CONF
+sed -i 's/MLAG_LOOBACK/mlag1/' $TOR1_CONF
+sed -i 's/MLAG_LOOBACK/mlag2/' $TOR2_CONF
+sed -i 's/MLAG_PEER_IP/'$TOR2_MLAG_IP'/' $TOR1_CONF
+sed -i 's/MLAG_PEER_IP/'$TOR1_MLAG_IP'/' $TOR2_CONF
+
+
+### step 9. 
+WebUrl="/var/www/$MGMT_SWITCH_NAME"
+if [[ -d $WebUrl ]]
+then
+ rm -rf $WebUrl
+fi
+mkdir $WebUrl
+ln $TOR1_CONF $WebUrl
+ln $TOR2_CONF $WebUrl
+
+### step 13. finish all processing
+echo "completed"

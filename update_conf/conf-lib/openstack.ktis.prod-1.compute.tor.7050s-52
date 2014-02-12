@@ -261,6 +261,7 @@ interface Vlan100
 !
 interface Vlan200
    description storage
+   mtu 9212
    vrf forwarding storage
    ip address CHANGE_STORAGE_NETWORK
    ip virtual-router address CHANGE_STORAGE_GATEWAY

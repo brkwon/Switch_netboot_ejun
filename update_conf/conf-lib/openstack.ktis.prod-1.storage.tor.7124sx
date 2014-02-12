@@ -1,0 +1,221 @@
+!
+terminal length 25
+!
+logging host 10.0.8.45
+!
+hostname CHANGE_HOSTNAME
+!
+ntp server 10.0.1.251
+ntp server 10.0.1.252
+!
+snmp-server community ktcloudnw! ro
+snmp-server host 10.0.8.45 version 2c ktcloudnw!
+snmp-server enable traps
+snmp-server vrf Management
+!
+spanning-tree mode rapid-pvst
+no spanning-tree vlan 4094
+no spanning-tree bpduguard rate-limit default
+!
+enable secret 0 CHANGE_ENABLE_PASS
+no aaa root
+!
+username admin role network-admin secret 0 CHANGE_ADMIN_PASS
+username ktcseadmin secret 0 CHANGE_KTCSEADMIN_PASS
+username opadmin secret 0 CHANGE_OPADMIN_PASS
+!
+clock timezone Asia/Seoul
+!
+vlan 200
+   name Storage
+!
+vlan 4094
+   name MLAG-PEER
+   trunk group MLAG-PEER
+!
+vrf definition Management
+   rd 100:200
+!
+interface Port-Channel501
+   switchport access vlan 200
+   mlag 501
+   spanning-tree portfast
+!
+interface Port-Channel502
+   switchport access vlan 200
+   mlag 502
+   spanning-tree portfast
+!
+interface Port-Channel503
+   switchport access vlan 200
+   mlag 503
+   spanning-tree portfast
+!
+interface Port-Channel504
+   switchport access vlan 200
+   mlag 504
+   spanning-tree portfast
+!
+interface Port-Channel505
+   switchport access vlan 200
+   mlag 505
+   spanning-tree portfast
+!
+interface Port-Channel506
+   switchport access vlan 200
+   mlag 506
+   spanning-tree portfast
+!
+interface Port-Channel1000
+   description MLAG-PEER
+   switchport trunk allowed vlan 200,4094
+   switchport mode trunk
+   switchport trunk group MLAG-PEER
+!
+interface Ethernet1
+   description Snode01_1-1
+   channel-group 501 mode active
+!
+interface Ethernet2
+   description Snode01_1-2
+   channel-group 502 mode active
+!
+interface Ethernet3
+   description Snode02_1-1
+   channel-group 503 mode active
+!
+interface Ethernet4
+   description Snode02_1-2
+   channel-group 504 mode active
+!
+interface Ethernet5
+   description Snode03_1-1
+   channel-group 505 mode active
+!
+interface Ethernet6
+   description Snode03_1-2
+   channel-group 506 mode active
+!
+interface Ethernet7
+   shutdown
+!
+interface Ethernet8
+   shutdown
+!
+interface Ethernet9
+   shutdown
+!
+interface Ethernet10
+   shutdown
+!
+interface Ethernet11
+   shutdown
+!
+interface Ethernet12
+   shutdown
+!
+interface Ethernet13
+   shutdown
+!
+interface Ethernet14
+   shutdown
+!
+interface Ethernet15
+   shutdown
+!
+interface Ethernet16
+   shutdown
+!
+interface Ethernet17
+   shutdown
+!
+interface Ethernet18
+   shutdown
+!
+interface Ethernet19
+   shutdown
+!
+interface Ethernet20
+   description MLAG-PEER
+   channel-group 1000 mode active
+!
+interface Ethernet21
+   description MLAG-PEER
+   channel-group 1000 mode active
+!
+interface Ethernet22
+   shutdown
+!
+interface Ethernet23
+   description CHANGE_STORAGE_UPLINK_PORTNAME
+   no switchport
+   ip address CHANGE_STORAGE_UPLINK_NETWORK
+   ip ospf network point-to-point
+!
+interface Ethernet24
+   shutdown
+!
+interface Loopback1
+   description storage-lo0
+   vrf forwarding storage
+   ip address CHANGE_STORAGE_LO_NETWORK
+!
+interface Management1
+   vrf forwarding Management
+   ip address CHANGE_MGMT_NETWORK
+!
+interface Vlan200
+   description storage
+   mtu 9212
+   ip address CHANGE_STORAGE_NETWORK
+   ip virtual-router address CHANGE_STORAGE_GATEWAY
+!
+interface Vlan4094
+   description MLAG-PEER
+   no autostate
+   ip address MLAG_NETWORK
+!
+ip virtual-router mac-address 00:1c:73:00:00:99
+!
+ip route vrf Management 0.0.0.0/0 CHANGE_MGMT_GATEWAY
+!
+ip routing
+ip routing vrf Management
+!
+mlag configuration
+   domain-id MLAG_LOOBACK
+   local-interface Vlan4094
+   peer-address MLAG_PEER_IP
+   peer-link Port-Channel1000
+!
+router ospf 2002
+   router-id CHANGE_STORAGE_OSPF_ROUTER_ID
+   network CHANGE_STORAGE_OSPF_UPLINK area 0.0.0.0
+   network CHANGE_STORAGE_OSPF_LO area 0.0.0.0
+   network CHANGE_STORAGE_OSPF_CONNECT area 0.0.0.0
+   max-lsa 12000
+   maximum-paths 32
+!
+banner login
+======================================================================
+                        !!! Access Warning !!! 
+======================================================================
+1. You connected an Unauthorised NETWORK device.
+   If you were not enrolled, you should log out from this device.
+
+2. We are record your histoy regardless of your agreement.
+
+3. After you connect this device, if you try to habit illegal 
+   and then you receive punishment for the crime.
+----------------------------------------------------------------------
+EOF
+!
+management console
+   idle-timeout 30
+!
+management telnet
+   no shutdown
+   idle-timeout 5
+!
+!
+end

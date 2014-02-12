@@ -76,7 +76,7 @@ class Home:
   for filename in os.listdir(Home.template_directory):
    if os.path.isfile(Home.template_directory+"/"+filename):
     URL_link="<a href=http://"+manage.cgi_weburl+"/"+manage.cgi_alias+"/build-"+filename+".py>"+filename+"</a>"
-    form_content = form_content + URL_link
+    form_content = form_content + URL_link + "<br>"
   return form_content
 
  def form_zone_add(self):
