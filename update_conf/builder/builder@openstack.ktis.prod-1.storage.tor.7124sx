@@ -259,6 +259,8 @@ fi
 mkdir $WebUrl
 ln $TOR1_CONF $WebUrl
 ln $TOR2_CONF $WebUrl
+chmod 777 $WebUrl
+chmod 777 $WebUrl/*
 
 ### step 13. finish all processing
 echo "completed"
