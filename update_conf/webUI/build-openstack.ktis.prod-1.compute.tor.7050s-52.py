@@ -50,7 +50,8 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52(Home):
      display_config_table = self.display_config(mgmt_device_name)
      ### remove form insert
      remove_cnf_form = self.remove_form_generation("./remove-openstack.ktis.prod-1.compute.tor.7050s-52.form",mgmt_device_name)
-     form_content = remove_cnf_form+self.link_line+"<br><br>"+display_config_table+"<br>"+remove_cnf_form+self.link_line
+     upload_form=self.form_upload_file("build-openstack.ktis.prod-1.compute.tor.7050s-52.py",mgmt_device_name,self.get_filename_indir(mgmt_device_name)[0],self.get_filename_indir(mgmt_device_name)[1])
+     form_content = remove_cnf_form+upload_form+self.link_line+"<br><br>"+display_config_table+"<br>"+remove_cnf_form+self.link_line
     ### if os.path.exists(config_directory):
     else:
      arguments=switch_name+" "+enable_pass+" "+admin_pass+" "+ktcseadmin_pass+" "+opadmin_pass+" "+service_net_uplink_t1r1+" "+service_net_uplink_t2r2+" "+storage_net_uplink_t1r1+" "+storage_net_uplink_t2r2+" "+switch1_service_lo+" "+switch2_service_lo+" "+switch1_storage_lo+" "+switch2_storage_lo+" "+mgmt_device_name+" "+mgmt_network+" "+service_host_network+" "+storage_host_network
@@ -75,6 +76,21 @@ class Build_openstack_ktis_prod_1_compute_tor_7050s_52(Home):
    ### directory rm
    run_command = "rm -rf "+filename
    run_result = manage.exec_bash("./",run_command)
+   time.sleep(manage.sleep_time)
+   form_content =  open("./build-openstack.ktis.prod-1.compute.tor.7050s-52.form").read()
+   cgi_content={}
+   cgi_content['cgi_weburl']=manage.cgi_weburl
+   cgi_content['cgi_alias']=manage.cgi_alias
+   form_content = form_content % cgi_content
+
+  ### self.form.getvalue('key','') == 'upload': part
+  elif self.form.getvalue('key','') == 'upload':
+   upload_mgmt_devinfo=self.form.getvalue('mgmt_devname','')
+   upload_radio1 = self.form.getvalue('choose_radio1','')
+   upload_file1 = self.form.getvalue('file1','')
+   f_open = open(self.config_directory+"/"+upload_mgmt_devinfo+"/"+upload_radio1,'wb')
+   f_open.write(upload_file1)
+   f_open.close()
    time.sleep(manage.sleep_time)
    form_content =  open("./build-openstack.ktis.prod-1.compute.tor.7050s-52.form").read()
    cgi_content={}

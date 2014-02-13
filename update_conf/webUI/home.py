@@ -34,7 +34,8 @@ class Home:
     display_config_table = self.display_config(mgmt_device_name)
     form_content = display_config_table
     remove_cnf_form = self.remove_form_generation("./remove-home.form",mgmt_device_name)
-    form_content = self.link_line+"<br><br>"+remove_cnf_form+display_config_table+"<br>"+remove_cnf_form+self.link_line
+    upload_form=self.form_upload_file("home.py",mgmt_device_name,self.get_filename_indir(mgmt_device_name)[0],self.get_filename_indir(mgmt_device_name)[1])
+    form_content = self.link_line+"<br><br>"+remove_cnf_form+upload_form+display_config_table+"<br>"+remove_cnf_form+self.link_line
    else:
     form_content = self.form_zone_add() + self.form_select_config() + self.form_select_template()
 
@@ -52,11 +53,23 @@ class Home:
    time.sleep(manage.sleep_time)
    form_content = self.form_zone_add() + self.form_select_config() + self.form_select_template()
 
+  ### self.form.getvalue('key','') == 'upload': part
+  elif self.form.getvalue('key','') == 'upload':
+   upload_mgmt_devinfo=self.form.getvalue('mgmt_devname','')
+   upload_radio1 = self.form.getvalue('choose_radio1','')
+   upload_file1 = self.form.getvalue('file1','')
+   f_open = open(self.config_directory+"/"+upload_mgmt_devinfo+"/"+upload_radio1,'wb')
+   f_open.write(upload_file1)
+   f_open.close()
+   time.sleep(manage.sleep_time)
+   ### show configuration menu
+   form_content = self.form_zone_add() + self.form_select_config() + self.form_select_template()
+
   ### self.form.getvalue('key','') == 'anything': part
   else:
    ### show configuration menu
    form_content = self.form_zone_add() + self.form_select_config() + self.form_select_template()
-
+   
 
   ### __init__ end
   self.insert_contents['form_name']=form_content
@@ -85,7 +98,23 @@ class Home:
   form_content = form_content + Zone_Link
   return form_content
 
- 
+ def form_upload_file(self,current_file_name,mgmt_devinfo,selection_option1,selection_option2):
+  input_form_dict={}
+  input_form_dict['cgi_weburl']=manage.cgi_weburl
+  input_form_dict['cgi_alias']=manage.cgi_alias
+  input_form_dict['current_file_name']=current_file_name
+  input_form_dict['mgmt_devinfo']=mgmt_devinfo
+  input_form_dict['selection_option1']=selection_option1
+  input_form_dict['selection_option2']=selection_option2
+  upload_form = open("./upload_file.form").read()
+  return upload_form % input_form_dict
+
+ def get_filename_indir(self,mgmt_device_name):
+  return_list=[]
+  cnf_dir_name=self.config_directory+"/"+mgmt_device_name
+  for filename in os.listdir(cnf_dir_name):
+   return_list.append(filename.strip())
+  return return_list
 
  def display_config(self,mgmt_device_name):
   display_config_table="<h2>"+mgmt_device_name+" is already used ! </h2><br><table><tr>"

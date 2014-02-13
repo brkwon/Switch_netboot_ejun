@@ -45,7 +45,8 @@ class Build_openstack_ktis_prod_1_storage_tor_7124sx(Home):
      display_config_table = self.display_config(mgmt_device_name)
      ### remove form insert
      remove_cnf_form = self.remove_form_generation("./remove-openstack.ktis.prod-1.storage.tor.7124sx.form",mgmt_device_name)
-     form_content = remove_cnf_form+self.link_line+"<br><br>"+display_config_table+"<br>"+remove_cnf_form+self.link_line
+     upload_form=self.form_upload_file("build-openstack.ktis.prod-1.storage.tor.7124sx.py",mgmt_device_name,self.get_filename_indir(mgmt_device_name)[0],self.get_filename_indir(mgmt_device_name)[1])
+     form_content = remove_cnf_form+upload_form+self.link_line+"<br><br>"+display_config_table+"<br>"+remove_cnf_form+self.link_line
     ### if os.path.exists(config_directory):
     else:
      arguments=switch_name+" "+enable_pass+" "+admin_pass+" "+ktcseadmin_pass+" "+opadmin_pass+" "+storage_net_uplink_t1r1+" "+storage_net_uplink_t2r2+" "+switch1_storage_lo+" "+switch2_storage_lo+" "+mgmt_device_name+" "+mgmt_network+" "+storage_host_network
@@ -77,6 +78,21 @@ class Build_openstack_ktis_prod_1_storage_tor_7124sx(Home):
    cgi_content['cgi_alias']=manage.cgi_alias
    form_content = form_content % cgi_content
 
+  ### self.form.getvalue('key','') == 'upload': part
+  elif self.form.getvalue('key','') == 'upload':
+   upload_mgmt_devinfo=self.form.getvalue('mgmt_devname','')
+   upload_radio1 = self.form.getvalue('choose_radio1','')
+   upload_file1 = self.form.getvalue('file1','')
+   f_open = open(self.config_directory+"/"+upload_mgmt_devinfo+"/"+upload_radio1,'wb')
+   f_open.write(upload_file1)
+   f_open.close()
+   time.sleep(manage.sleep_time)
+    form_content =  open("./build-openstack.ktis.prod-1.storage.tor.7124sx.form").read()
+   cgi_content={}
+   cgi_content['cgi_weburl']=manage.cgi_weburl
+   cgi_content['cgi_alias']=manage.cgi_alias
+   form_content = form_content % cgi_content
+ 
   ### self.form.getvalue('key','') == 'anything': part
   else:
    form_content =  open("./build-openstack.ktis.prod-1.storage.tor.7124sx.form").read()

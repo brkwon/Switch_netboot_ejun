@@ -1,0 +1,16 @@
+<form method='post' action="http://%(cgi_weburl)s/%(cgi_alias)s/%(current_file_name)s" enctype="multipart/form-data">
+
+ <input type='hidden' name='key' value='upload'/>
+ <input type='hidden' name='mgmt_devname' value='%(mgmt_devinfo)s'/>
+
+ <h4>Choose the Configuration File to upload :</h4>
+ <table border="1">
+  <tr>
+   <td><font size=2> %(selection_option1)s :</font><input type='radio' name='choose_radio1' value='%(selection_option1)s'/> </td>
+   <td><font size=2> %(selection_option2)s :</font><input type='radio' name='choose_radio1' value='%(selection_option2)s'/> </td>
+   <td><input type='file' name='file1' size="50"/> </td>
+   <td><input type='submit' value='Upload file'/></td>
+  </tr>
+ </table><br>
+
+</form>
