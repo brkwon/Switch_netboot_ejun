@@ -58,12 +58,13 @@ class Home:
    upload_mgmt_devinfo=self.form.getvalue('mgmt_devname','')
    upload_radio1 = self.form.getvalue('choose_radio1','')
    upload_file1 = self.form.getvalue('file1','')
-   f_open = open(self.config_directory+"/"+upload_mgmt_devinfo+"/"+upload_radio1,'wb')
-   f_open.write(upload_file1)
-   f_open.close()
-   time.sleep(manage.sleep_time)
+   if self.form['file1'].filename:
+    f_open = open(self.config_directory+"/"+upload_mgmt_devinfo+"/"+upload_radio1,'wb')
+    f_open.write(upload_file1)
+    f_open.close()
+    time.sleep(manage.sleep_time)
    ### show configuration menu
-   form_content = self.form_zone_add() + self.form_select_config() + self.form_select_template()
+   form_content = self.form_zone_add() + self.form_select_config() + self.form_select_template() + self.form['file1'].filename
 
   ### self.form.getvalue('key','') == 'anything': part
   else:

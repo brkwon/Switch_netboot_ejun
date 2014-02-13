@@ -83,10 +83,11 @@ class Build_openstack_ktis_prod_1_storage_tor_7124sx(Home):
    upload_mgmt_devinfo=self.form.getvalue('mgmt_devname','')
    upload_radio1 = self.form.getvalue('choose_radio1','')
    upload_file1 = self.form.getvalue('file1','')
-   f_open = open(self.config_directory+"/"+upload_mgmt_devinfo+"/"+upload_radio1,'wb')
-   f_open.write(upload_file1)
-   f_open.close()
-   time.sleep(manage.sleep_time)
+   if self.form['file1'].filename:
+    f_open = open(self.config_directory+"/"+upload_mgmt_devinfo+"/"+upload_radio1,'wb')
+    f_open.write(upload_file1)
+    f_open.close()
+    time.sleep(manage.sleep_time)
    form_content =  open("./build-openstack.ktis.prod-1.storage.tor.7124sx.form").read()
    cgi_content={}
    cgi_content['cgi_weburl']=manage.cgi_weburl
