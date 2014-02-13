@@ -87,7 +87,7 @@ class Build_openstack_ktis_prod_1_storage_tor_7124sx(Home):
    f_open.write(upload_file1)
    f_open.close()
    time.sleep(manage.sleep_time)
-    form_content =  open("./build-openstack.ktis.prod-1.storage.tor.7124sx.form").read()
+   form_content =  open("./build-openstack.ktis.prod-1.storage.tor.7124sx.form").read()
    cgi_content={}
    cgi_content['cgi_weburl']=manage.cgi_weburl
    cgi_content['cgi_alias']=manage.cgi_alias
